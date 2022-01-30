@@ -84,15 +84,16 @@ vr::EVRInitError Relativty::HMDDriver::Activate(uint32_t unObjectId) {
 
 	this->retrieve_quaternion_isOn = true;
 	this->retrieve_quaternion_thread_worker = std::thread(&Relativty::HMDDriver::retrieve_device_quaternion_packet_threaded, this);
+	this->retrieve_vector_thread_worker = std::thread(&Relativty::HMDDriver::retrieve_client_vector_packet_threaded, this);
 
-	if (this->start_tracking_server) {
+	/*if (this->start_tracking_server) {
 		this->retrieve_vector_isOn = true;
 		this->retrieve_vector_thread_worker = std::thread(&Relativty::HMDDriver::retrieve_client_vector_packet_threaded, this);
 		while (this->serverNotReady) {
 			// do nothing
 		}
 		this->startPythonTrackingClient_worker = std::thread(startPythonTrackingClient_threaded, this->PyPath);
-	}
+	}*/
 
 	this->update_pose_thread_worker = std::thread(&Relativty::HMDDriver::update_pose_threaded, this);
 
@@ -236,8 +237,10 @@ void Relativty::HMDDriver::retrieve_device_quaternion_packet_threaded() {//Õâ¸öº
 	float qres[4];
 
 	if (!this->start_tracking_server) {
-		Relativty::ServerDriver::Log("Setting y pos...\n");
-		this->vector_xyz[1] = 1.3;//Ã»×·×Ù£¬ÄÇ¾Íµ±3×ÔÓÉ¶ÈÍ·¿øÓÃ£¬¸ß¶Èµæ¸ßµã
+		Relativty::ServerDriver::Log("Setting y pos...\n"); \
+		NOLOData hmdpos;
+		hmdpos=GetNoloData();
+		this->vector_xyz[1] = hmdpos.hmdData.HMDPosition.y;//Ã»×·×Ù£¬ÄÇ¾Íµ±3×ÔÓÉ¶ÈÍ·¿øÓÃ£¬¸ß¶Èµæ¸ßµã
 		this->new_vector_avaiable = true;
 	}
 
@@ -311,7 +314,10 @@ void Relativty::HMDDriver::retrieve_client_vector_packet_threaded() {
 	float coordinate[3]{ 0, 0, 0 };
 	float coordinate_normalized[3];
 
-	Relativty::ServerDriver::Log("Thread3: Initialising Socket.\n");
+	NOLOData nolo_HMD_data;
+	//this->vector_xyz[1] = hmdpos.hmdData.HMDPosition.y;//Ã»×·×Ù£¬ÄÇ¾Íµ±3×ÔÓÉ¶ÈÍ·¿øÓÃ£¬¸ß¶Èµæ¸ßµã
+
+	/*Relativty::ServerDriver::Log("Thread3: Initialising Socket.\n");
 	if (WSAStartup(MAKEWORD(2, 2), &wsaData) != 0) {
 		Relativty::ServerDriver::Log("Thread3: Failed. Error Code: " + WSAGetLastError());
 		return;
@@ -342,10 +348,19 @@ void Relativty::HMDDriver::retrieve_client_vector_packet_threaded() {
 	Relativty::ServerDriver::Log("Thread3: Connection accepted");
 
 	Relativty::ServerDriver::Log("Thread3: successfully started\n");
+	*/
 
+	this->retrieve_vector_isOn = true;
 
 	while (this->retrieve_vector_isOn) {
-		resultReceiveLen = recv(this->sock_receive, receiveBuffer, receiveBufferLen, NULL);
+
+		nolo_HMD_data = GetNoloData();
+		this->vector_xyz[0] = nolo_HMD_data.hmdData.HMDPosition.x;
+		this->vector_xyz[1] = nolo_HMD_data.hmdData.HMDPosition.y; 
+		this->vector_xyz[2] = nolo_HMD_data.hmdData.HMDPosition.z;
+		this->new_vector_avaiable = true;
+
+		/*resultReceiveLen = recv(this->sock_receive, receiveBuffer, receiveBufferLen, NULL);
 		//printf("%x\n", receiveBuffer);
 		if (resultReceiveLen > 0) {
 			coordinate[0] = *(float*)(receiveBuffer);
@@ -357,8 +372,7 @@ void Relativty::HMDDriver::retrieve_client_vector_packet_threaded() {
 			this->vector_xyz[0] = coordinate_normalized[1];
 			this->vector_xyz[1] = coordinate_normalized[2];
 			this->vector_xyz[2] = coordinate_normalized[0];
-			this->new_vector_avaiable = true;
-		}
+		}*/
 	}
 	Relativty::ServerDriver::Log("Thread3: successfully stopped\n");
 }
