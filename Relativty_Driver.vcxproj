@@ -178,7 +178,7 @@
     <ClCompile Include="source\driverlog.cpp" />
     <ClCompile Include="source\hid.c" />
     <ClCompile Include="source\NOLOController.cpp" />
-    <ClCompile Include="source\Relativty_EmbeddedPython.cpp" />
+    <ClCompile Include="source\NoloDeviceManager.cpp" />
     <ClCompile Include="source\Relativty_HMDDriver.cpp" />
     <ClCompile Include="source\Relativty_ServerDriver.cpp" />
   </ItemGroup>
@@ -186,13 +186,11 @@
     <ClInclude Include="include\driverlog.h" />
     <ClInclude Include="include\NoloClientLib.h" />
     <ClInclude Include="include\NOLOController.h" />
-    <ClInclude Include="include\NoloDeviceManager.h" />
     <ClInclude Include="include\Nolo_DeviceType.h" />
     <ClInclude Include="include\Nolo_Math.h" />
     <ClInclude Include="include\openvr_driver.h" />
     <ClInclude Include="include\Relativty_base_device.h" />
     <ClInclude Include="include\Relativty_components.h" />
-    <ClInclude Include="include\Relativty_EmbeddedPython.h" />
     <ClInclude Include="include\Relativty_HMDDriver.hpp" />
     <ClInclude Include="include\Relativty_ServerDriver.hpp" />
   </ItemGroup>

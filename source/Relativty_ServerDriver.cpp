@@ -19,8 +19,9 @@
 
 #include "Relativty_ServerDriver.hpp"
 #include "Relativty_HMDDriver.hpp"
+#include "NoloDeviceManager.h"
 
-vr::EVRInitError Relativty::ServerDriver::Init(vr::IVRDriverContext* DriverContext) {
+vr::EVRInitError ServerDriver::Init(vr::IVRDriverContext* DriverContext) {
 
 	vr::EVRInitError eError = vr::InitServerDriverContext(DriverContext);
 		if (eError != vr::VRInitError_None) {
@@ -35,24 +36,36 @@ vr::EVRInitError Relativty::ServerDriver::Init(vr::IVRDriverContext* DriverConte
 	#endif
 
 	this->Log("Relativty Init successful.\n");
-	
-	this->HMDDriver = new Relativty::HMDDriver("zero");
-	noloLeftController = new NOLOController("1314", TrackedControllerRole_LeftHand);
-	noloRightController = new NOLOController("1315", TrackedControllerRole_RightHand);
 
+	OpenNoloZeroMQ();
+
+	this->HMDDriver = new Relativty::HMDDriver("zero");
+	this->m_NoloManager = new NoloDeviceManager(this);
+	this->noloLeftController = new NOLOController("1314", TrackedControllerRole_LeftHand);
+	this->noloRightController = new NOLOController("1315", TrackedControllerRole_RightHand);
+	
+	if (m_NoloManager->InitNoloDevice()) {
+		this->Log("ZMQ Init successful.\n");
+	}
 
 	vr::VRServerDriverHost()->TrackedDeviceAdded(HMDDriver->GetSerialNumber().c_str(), vr::ETrackedDeviceClass::TrackedDeviceClass_HMD, this->HMDDriver);
-	vr::VRServerDriverHost()->TrackedDeviceAdded(noloLeftController->GetSerialNumber().c_str(), vr::TrackedDeviceClass_Controller, noloLeftController);
-	vr::VRServerDriverHost()->TrackedDeviceAdded(noloRightController->GetSerialNumber().c_str(), vr::TrackedDeviceClass_Controller, noloRightController);
+	vr::VRServerDriverHost()->TrackedDeviceAdded(noloLeftController->GetSerialNumber().c_str(), vr::TrackedDeviceClass_Controller, this->noloLeftController);
+	vr::VRServerDriverHost()->TrackedDeviceAdded(noloRightController->GetSerialNumber().c_str(), vr::TrackedDeviceClass_Controller, this->noloRightController);
 
 	// GetSerialNumber() is there for a reason!
 
 	return vr::VRInitError_None;
 }
 
-void Relativty::ServerDriver::Cleanup() {
+void ServerDriver::Cleanup() {
 	delete this->HMDDriver;
+	delete this->noloLeftController;
+	delete this->noloRightController;
+
 	this->HMDDriver = NULL;
+	this->noloLeftController = NULL;
+	this->noloRightController = NULL;
+
 
 	#ifdef DRIVERLOG_H
 	CleanupDriverLog();
@@ -61,24 +74,80 @@ void Relativty::ServerDriver::Cleanup() {
 	VR_CLEANUP_SERVER_DRIVER_CONTEXT();
 }
 
-const char* const* Relativty::ServerDriver::GetInterfaceVersions() {
+const char* const* ServerDriver::GetInterfaceVersions() {
 	return vr::k_InterfaceVersions;
 }
 
-void Relativty::ServerDriver::RunFrame() {} // if ur not using it don't populate it with garbage!
+void ServerDriver::RunFrame() {} // if ur not using it don't populate it with garbage!
 
-bool Relativty::ServerDriver::ShouldBlockStandbyMode() {
+bool ServerDriver::ShouldBlockStandbyMode() {
 	return false;
 }
 
-void Relativty::ServerDriver::EnterStandby() {
+void ServerDriver::EnterStandby() {
 
 }
 
-void Relativty::ServerDriver::LeaveStandby() {
+void ServerDriver::LeaveStandby() {
 
 }
 
-void Relativty::ServerDriver::Log(std::string log) {
+void ServerDriver::Log(std::string log) {
 	vr::VRDriverLog()->Log(log.c_str());
+}
+
+void ServerDriver::SetNoloConnected(bool bcnnected)
+{
+	if (HMDDriver != nullptr) {
+		HMDDriver
+	}
+}
+
+int ConvertAmplitude(float fAmplitude)
+{
+	//NOLO Controler Valid Amplitude: 52 - 100
+	float newAmplitude = (fAmplitude * 100.0f) + 52.0f;
+	int iAmp = newAmplitude;
+	if (iAmp > 100)
+	{
+		iAmp = 100;
+	}
+	return iAmp;
+}
+
+void ServerDriver::UpdateHaptic(VREvent_t& eventHandle)
+{
+	//DriverLog("#=========Type=%d== InDex=%d=========\n", eventHandle.eventType, eventHandle.trackedDeviceIndex);
+	if (eventHandle.eventType == VREvent_Input_HapticVibration)
+	{
+		VREvent_HapticVibration_t data = eventHandle.data.hapticVibration;
+		int iAmplitude = ConvertAmplitude(data.fAmplitude);
+		if (noloLeftController->GetPropertyContainer() == data.containerHandle)
+		{
+			NOLOVR::TriggerHapticPulse(NOLOVR::eLeftController, iAmplitude);
+		}
+		else if (noloRightController->GetPropertyContainer() == data.containerHandle)
+		{
+			NOLOVR::TriggerHapticPulse(NOLOVR::eRightController, iAmplitude);
+		}
+	}
+}
+
+void ServerDriver::UpdateNoloPose(const NOLOData& newData) {
+	if (noloLeftController){
+		noloLeftController->UpdatePose(newData.leftData,true);
+	}
+	if (noloRightController){
+		noloRightController->UpdatePose(newData.rightData,false);
+	}
+}
+
+void ServerDriver::UpdateNoloKey(ENoloDeviceType device, EControlerButtonType type,bool ifPress)
+{
+	if (device == NOLOVR::eLeftController) {
+		noloLeftController->SendButtonUpdate(type, ifPress);
+	}
+	else if(device == NOLOVR::eRightController){
+		noloRightController->SendButtonUpdate(type, ifPress);
+	}
 }

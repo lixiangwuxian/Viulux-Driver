@@ -35,12 +35,12 @@ public:
 	void UpdateDataWork();
 	void SetNoloConnected(bool bConnected);
 private:
-	NoloDeviceManager *m_NoloManager;//Nolo„1¤7õô
-	CHMDDeviceDriver *m_pNullHmdLatest;//0È5
-	//NOLOController * noloLeftController;//„1¤7„1¤7„1¤7„1¤7
-	//NOLOController * noloRightController;//„1¤7„1¤7„1¤7„1¤7
+	NoloDeviceManager *m_NoloManager;//Noloè®¾å¤‡
+	CHMDDeviceDriver *m_pNullHmdLatest;//å¤´
+	//NOLOController * noloLeftController;//å·¦æ‰‹
+	//NOLOController * noloRightController;//å³æ‰‹
 	
-	//Driver „1¤70†4„1¤7„1¤7„1¤7„1¤7„1¤7
+	//Driver äº‹ä»¶å¤„ç†
 	std::thread m_EventThread;
 	bool m_bEventThreadRunning;
 	//

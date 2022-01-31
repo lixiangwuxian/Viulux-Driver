@@ -65,7 +65,6 @@ namespace Relativty {
 		std::atomic<float> vector_xyz[3];
 		std::atomic<bool> retrieve_vector_isOn = false;
 		std::atomic<bool> new_vector_avaiable = false;
-		bool start_tracking_server = false;
 		SOCKET sock, sock_receive;
 		float upperBound;
 		float lowerBound;
@@ -93,7 +92,5 @@ namespace Relativty {
 		std::thread update_pose_thread_worker;
 		void update_pose_threaded();
 
-		std::string PyPath;
-		std::thread startPythonTrackingClient_worker;
 	};
 }

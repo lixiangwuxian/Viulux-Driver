@@ -19,6 +19,7 @@ public:
 
 	virtual EVRInitError Activate(uint32_t unObjectId);
 
+
 	virtual void Deactivate() ;
 
 	/** Handles a request from the system to put this device into standby mode. What that means is defined per-device. */
@@ -45,13 +46,13 @@ public:
 	void onButtonReleased(EControlerButtonType type);
 
 	std::string GetSerialNumber();
-	void UpdatePose(Controller ctrData);
+	void UpdatePose(Controller ctrData,bool leftOrRight);
 	void SetTurnAround(bool bTurn);
 
 private:
 	void initPos();
 	void InitEventHandler();
-	DriverPose_t GetPose(Controller ctrData);
+	DriverPose_t GetPose(Controller ctrData, bool LeftOrRight);
 private:
 	VRControllerState_t m_ControllerState;
 	vr::DriverPose_t  m_Pose;

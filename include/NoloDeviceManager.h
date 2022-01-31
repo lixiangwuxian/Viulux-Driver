@@ -5,13 +5,13 @@
 using namespace NOLOVR;
 
 
-class CServerDriver;
+class ServerDriver;
 class NoloDeviceManager:public INOLOZMQEvent
 {
 public:
-	NoloDeviceManager(CServerDriver *server);
+	NoloDeviceManager(ServerDriver *server);
 	~NoloDeviceManager();
-	void InitNoloDevice();
+	bool InitNoloDevice();
 
 protected:	
 	// Í¨¹ý INOLOZQMEvent ¼Ì³Ð
@@ -20,13 +20,11 @@ protected:
 	virtual void OnKeyDoubleClicked(EControlerButtonType KeyType);
 	virtual void OnNewData(const NOLOData & _noloData) override;
 
-	//virtual void onButtonPressed(ENoloDeviceType device, EControlerButtonType type) override;
-	//virtual void onButtonRelease(ENoloDeviceType device, EControlerButtonType type) override;
+	virtual void OnButtonPressed(ENoloDeviceType device, EControlerButtonType type) override;
+	virtual void OnButtonRelease(ENoloDeviceType device, EControlerButtonType type) override;
 	//virtual void onButtonDoubleClicked(ENoloDeviceType device, EControlerButtonType type)override;
 	//virtual void onNewData(const NoloData &data) override;
 private:
-	CServerDriver *m_Server;
-
-
+	ServerDriver *m_Server;
 };
 

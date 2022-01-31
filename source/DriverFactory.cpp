@@ -17,12 +17,12 @@
 #include "Relativty_ServerDriver.hpp"
 
 
-static std::shared_ptr<Relativty::ServerDriver> Relativty_Driver;
+static std::shared_ptr<ServerDriver> Relativty_Driver;
 
 extern "C" __declspec(dllexport) void* HmdDriverFactory(const char* InterfaceName, int* ReturnCode) {
 	if (std::strcmp(InterfaceName, vr::IServerTrackedDeviceProvider_Version) == 0) {
 		if (!Relativty_Driver) {
-			Relativty_Driver = std::make_shared<Relativty::ServerDriver>();
+			Relativty_Driver = std::make_shared<ServerDriver>();
 		}
 		return Relativty_Driver.get();
 	}

@@ -31,7 +31,6 @@
 
 #include "Relativty_HMDDriver.hpp"
 #include "Relativty_ServerDriver.hpp"
-#include "Relativty_EmbeddedPython.h"
 #include "Relativty_components.h"
 #include "Relativty_base_device.h"
 
@@ -64,36 +63,9 @@ vr::EVRInitError Relativty::HMDDriver::Activate(uint32_t unObjectId) {
 	RelativtyDevice::Activate(unObjectId);
 	this->setProperties();
 
-
-	int result;
-	result = hid_init(); //Result should be 0.
-	if (result) {
-		Relativty::ServerDriver::Log("USB: HID API initialization failed. \n");
-		return vr::VRInitError_Driver_TrackedDeviceInterfaceUnknown;
-	}
-
-	this->handle = hid_open((unsigned short)m_iVid, (unsigned short)m_iPid, NULL);
-	if (!this->handle) {
-		#ifdef DRIVERLOG_H
-		DriverLog("USB: Unable to open HMD device with pid=%d and vid=%d.\n", m_iPid, m_iVid);
-		#else
-		Relativty::ServerDriver::Log("USB: Unable to open HMD device with pid="+ std::to_string(m_iPid) +" and vid="+ std::to_string(m_iVid) +".\n");
-		#endif
-		return vr::VRInitError_Init_InterfaceNotFound;
-	}
-
 	this->retrieve_quaternion_isOn = true;
 	this->retrieve_quaternion_thread_worker = std::thread(&Relativty::HMDDriver::retrieve_device_quaternion_packet_threaded, this);
 	this->retrieve_vector_thread_worker = std::thread(&Relativty::HMDDriver::retrieve_client_vector_packet_threaded, this);
-
-	/*if (this->start_tracking_server) {
-		this->retrieve_vector_isOn = true;
-		this->retrieve_vector_thread_worker = std::thread(&Relativty::HMDDriver::retrieve_client_vector_packet_threaded, this);
-		while (this->serverNotReady) {
-			// do nothing
-		}
-		this->startPythonTrackingClient_worker = std::thread(startPythonTrackingClient_threaded, this->PyPath);
-	}*/
 
 	this->update_pose_thread_worker = std::thread(&Relativty::HMDDriver::update_pose_threaded, this);
 
@@ -103,23 +75,15 @@ vr::EVRInitError Relativty::HMDDriver::Activate(uint32_t unObjectId) {
 void Relativty::HMDDriver::Deactivate() {
 	this->retrieve_quaternion_isOn = false;
 	this->retrieve_quaternion_thread_worker.join();
-	hid_close(this->handle);
-	hid_exit();
 
-	if (this->start_tracking_server) {
-		this->retrieve_vector_isOn = false;
-		closesocket(this->sock);
-		this->retrieve_vector_thread_worker.join();
-		WSACleanup();
-	}
 	RelativtyDevice::Deactivate();
 	this->update_pose_thread_worker.join();
 
-	Relativty::ServerDriver::Log("Thread0: all threads exit correctly \n");
+	ServerDriver::Log("Thread0: all threads exit correctly \n");
 }
 
 void Relativty::HMDDriver::update_pose_threaded() {
-	Relativty::ServerDriver::Log("Thread2: successfully started\n");
+	ServerDriver::Log("Thread2: successfully started\n");
 	while (m_unObjectId != vr::k_unTrackedDeviceIndexInvalid) {
 		if (this->new_quaternion_avaiable && this->new_vector_avaiable) {
 			m_Pose.qRotation.w = this->quat[0];
@@ -130,12 +94,11 @@ void Relativty::HMDDriver::update_pose_threaded() {
 			m_Pose.vecPosition[0] = this->vector_xyz[0];
 			m_Pose.vecPosition[1] = this->vector_xyz[1];
 			m_Pose.vecPosition[2] = this->vector_xyz[2];
-
 			vr::VRServerDriverHost()->TrackedDevicePoseUpdated(m_unObjectId, m_Pose, sizeof(vr::DriverPose_t));
 			this->new_quaternion_avaiable = false;
 			this->new_vector_avaiable = false;
 
-		} else if (this->new_quaternion_avaiable) {
+		} /*else if (this->new_quaternion_avaiable) {
 			m_Pose.qRotation.w = this->quat[0];
 			m_Pose.qRotation.x = this->quat[1];
 			m_Pose.qRotation.y = this->quat[2];
@@ -153,17 +116,17 @@ void Relativty::HMDDriver::update_pose_threaded() {
 			vr::VRServerDriverHost()->TrackedDevicePoseUpdated(m_unObjectId, m_Pose, sizeof(vr::DriverPose_t));
 			this->new_vector_avaiable = false;
 
-		}
+		}*/
 	}
-	Relativty::ServerDriver::Log("Thread2: successfully stopped\n");
+	ServerDriver::Log("Thread2: successfully stopped\n");
 }
 
 void Relativty::HMDDriver::calibrate_quaternion() {
 	if ((0x01 & GetAsyncKeyState(0x52)) != 0) {
-		//qconj[0].store(quat[0]);
-		//qconj[1].store(-1 * quat[1]);
-		//qconj[2].store(-1 * quat[2]);
-		//qconj[3].store(-1 * quat[3]);
+		qconj[0].store(quat[0]);
+		qconj[1].store(-1 * quat[1]);
+		qconj[2].store(-1 * quat[2]);
+		qconj[3].store(-1 * quat[3]);
 	}
 	float qres[4];
 
@@ -179,14 +142,6 @@ void Relativty::HMDDriver::calibrate_quaternion() {
 }
 
 void Relativty::HMDDriver::retrieve_device_quaternion_packet_threaded() {//Õâ¸öº¯ÊýÓÃÀ´½ÓÊÕÉè±¸µÄ»º³åÇø²¢×ª»»ÎªËùÐèµÄËÄÔªÊý
-	uint8_t packet_buffer[64];
-	int16_t quaternion_packet[4];
-	uint8_t* buffer = packet_buffer;
-	uint8_t num_samples;
-	uint32_t timestamp;
-	int32_t accel[3][3];
-	int32_t gyro[3][3];
-	quatf q;
 
 	//this struct is for mpu9250 support
 	#pragma pack(push, 1)
@@ -197,7 +152,7 @@ void Relativty::HMDDriver::retrieve_device_quaternion_packet_threaded() {//Õâ¸öº
 	};
 	#pragma pack(pop)
 	int result=1;
-	Relativty::ServerDriver::Log("Opened thread 1 successful!\n");
+	ServerDriver::Log("Opened thread 1 successful!\n");
 
 	//ohmd
 	int device_idx = 0;
@@ -210,56 +165,31 @@ void Relativty::HMDDriver::retrieve_device_quaternion_packet_threaded() {//Õâ¸öº
 
 	// Probe for devices
 	int num_devices = ohmd_ctx_probe(ctx);
-	// Print device information
-	for (int i = 0; i < num_devices; i++) {
-		int device_class = 0, device_flags = 0;
-		const char* device_class_s[] = { "HMD", "Controller", "Generic Tracker", "Unknown" };
-
-		ohmd_list_geti(ctx, i, OHMD_DEVICE_CLASS, &device_class);
-		ohmd_list_geti(ctx, i, OHMD_DEVICE_FLAGS, &device_flags);
-	}
 
 	// Open specified device idx or 0 (default) if nothing specified
 	ohmd_device* hmd = ohmd_list_open_device(ctx, device_idx);
-
-	const char* controls_fn_str[] = { "generic", "trigger", "trigger_click", "squeeze", "menu", "home",
-		"analog-x", "analog-y", "anlog_press", "button-a", "button-b", "button-x", "button-y",
-		"volume-up", "volume-down", "mic-mute" };
-
-	const char* controls_type_str[] = { "digital", "analog" };
-
-	int controls_fn[64];
-	int controls_types[64];
-
-	ohmd_device_geti(hmd, OHMD_CONTROLS_HINTS, controls_fn);
-	ohmd_device_geti(hmd, OHMD_CONTROLS_TYPES, controls_types);
-
 	float qres[4];
+	NOLOData nolo_HMD_data;
 
-	if (!this->start_tracking_server) {
-		Relativty::ServerDriver::Log("Setting y pos...\n"); \
-		NOLOData hmdpos;
-		hmdpos=GetNoloData();
-		this->vector_xyz[1] = hmdpos.hmdData.HMDPosition.y;//Ã»×·×Ù£¬ÄÇ¾Íµ±3×ÔÓÉ¶ÈÍ·¿øÓÃ£¬¸ß¶Èµæ¸ßµã
-		this->new_vector_avaiable = true;
-	}
+	bool ifUseNoloTrack = false;
 
-
-	Relativty::ServerDriver::Log("Load OpenHMD Successful!!\n");
+	ServerDriver::Log("Load OpenHMD Successful!!\n");
 
 	while (this->retrieve_quaternion_isOn) {
-		//result = hid_read(this->handle, packet_buffer, 64); //¶ÁUSB»º³åÇøµÄÖ¸Áî¡£Result should be greater than 0.
-		if (result > 0) {
-			if (m_bIMUpktIsDMP) {
+				if (!ifUseNoloTrack){
+					ohmd_ctx_update(ctx);
+					ohmd_device_getf(hmd, OHMD_ROTATION_QUAT, qres);
+					this->quat[0] = -1 * qres[0];
+					this->quat[1] = qres[3];
+					this->quat[2] = -1 * qres[2];
+					this->quat[3] = qres[1];
+				}
+				else {
 
-				ohmd_ctx_update(ctx);
-				ohmd_device_getf(hmd, OHMD_ROTATION_QUAT, qres);
-				this->quat[0] = -1*qres[0];
-				this->quat[1] = qres[3];
-				this->quat[2] = -1*qres[2];
-				this->quat[3] = qres[1];
+				}
 
-				//
+
+				//this->calibrate_quaternion();//¼ÆËãËÄÔªÊý,ÓëÔ¤ÉèÖµµþ¼Ó
 
 				qres[0] = qconj[0] * quat[0] - qconj[1] * quat[1] - qconj[2] * quat[2] - qconj[3] * quat[3];
 				qres[1] = qconj[0] * quat[1] + qconj[1] * quat[0] + qconj[2] * quat[3] - qconj[3] * quat[2];
@@ -271,40 +201,18 @@ void Relativty::HMDDriver::retrieve_device_quaternion_packet_threaded() {//Õâ¸öº
 				this->quat[2] = qres[2];
 				this->quat[3] = qres[3];
 
-				//this->calibrate_quaternion();//¼ÆËãËÄÔªÊý,ÓëÔ¤ÉèÖµµþ¼Ó
 
+				nolo_HMD_data = GetNoloData();
+				this->vector_xyz[0] = -1 * nolo_HMD_data.hmdData.HMDPosition.x;
+				this->vector_xyz[1] = nolo_HMD_data.hmdData.HMDPosition.y;
+				this->vector_xyz[2] = nolo_HMD_data.hmdData.HMDPosition.z;
+				this->new_vector_avaiable = true;
 				this->new_quaternion_avaiable = true;//Î»ÖÃÐÅÏ¢¿É¸üÐÂ
-
-			}
-			else {			
-				pak* recv = (pak*)packet_buffer;
-				this->quat[0] = recv->quat[0];
-				this->quat[1] = recv->quat[1];
-				this->quat[2] = recv->quat[2];
-				this->quat[3] = recv->quat[3];
-
-				this->calibrate_quaternion();
-
-				this->new_quaternion_avaiable = true;
-
-			}
-
-
-		}
-		else {
-			Relativty::ServerDriver::Log("Thread1: Issue while trying to read USB\n");
-		}
 	}
-	Relativty::ServerDriver::Log("Thread1: successfully stopped\n");
+	ServerDriver::Log("Thread1: successfully stopped\n");
 }
 
 void Relativty::HMDDriver::retrieve_client_vector_packet_threaded() {
-	WSADATA wsaData;
-	struct sockaddr_in server, client;
-	int addressLen;
-	int receiveBufferLen = 12;
-	char receiveBuffer[12];
-	int resultReceiveLen;
 
 	float normalize_min[3]{ this->normalizeMinX, this->normalizeMinY, this->normalizeMinZ};
 	float normalize_max[3]{ this->normalizeMaxX, this->normalizeMaxY, this->normalizeMaxZ};
@@ -315,66 +223,25 @@ void Relativty::HMDDriver::retrieve_client_vector_packet_threaded() {
 	float coordinate_normalized[3];
 
 	NOLOData nolo_HMD_data;
-	//this->vector_xyz[1] = hmdpos.hmdData.HMDPosition.y;//Ã»×·×Ù£¬ÄÇ¾Íµ±3×ÔÓÉ¶ÈÍ·¿øÓÃ£¬¸ß¶Èµæ¸ßµã
-
-	/*Relativty::ServerDriver::Log("Thread3: Initialising Socket.\n");
-	if (WSAStartup(MAKEWORD(2, 2), &wsaData) != 0) {
-		Relativty::ServerDriver::Log("Thread3: Failed. Error Code: " + WSAGetLastError());
-		return;
-	}
-	Relativty::ServerDriver::Log("Thread3: Socket successfully initialised.\n");
-
-	if ((this->sock = socket(AF_INET, SOCK_STREAM, 0)) == INVALID_SOCKET)
-		Relativty::ServerDriver::Log("Thread3: could not create socket: " + WSAGetLastError());
-	Relativty::ServerDriver::Log("Thread3: Socket created.\n");
-
-	server.sin_family = AF_INET;
-	server.sin_port = htons(50000);
-	server.sin_addr.s_addr = INADDR_ANY;
-
-	if (bind(this->sock, (struct sockaddr*) & server, sizeof(server)) == SOCKET_ERROR)
-		Relativty::ServerDriver::Log("Thread3: Bind failed with error code: " + WSAGetLastError());
-	Relativty::ServerDriver::Log("Thread3: Bind done \n");
-
-	listen(this->sock, 1);
-
-	this->serverNotReady = false;
-
-	Relativty::ServerDriver::Log("Thread3: Waiting for incoming connections...\n");
-	addressLen = sizeof(struct sockaddr_in);
-	this->sock_receive = accept(this->sock, (struct sockaddr*) & client, &addressLen);
-	if (this->sock_receive == INVALID_SOCKET)
-		Relativty::ServerDriver::Log("Thread3: accept failed with error code: " + WSAGetLastError());
-	Relativty::ServerDriver::Log("Thread3: Connection accepted");
-
-	Relativty::ServerDriver::Log("Thread3: successfully started\n");
-	*/
 
 	this->retrieve_vector_isOn = true;
 
 	while (this->retrieve_vector_isOn) {
 
-		nolo_HMD_data = GetNoloData();
-		this->vector_xyz[0] = nolo_HMD_data.hmdData.HMDPosition.x;
-		this->vector_xyz[1] = nolo_HMD_data.hmdData.HMDPosition.y; 
-		this->vector_xyz[2] = nolo_HMD_data.hmdData.HMDPosition.z;
-		this->new_vector_avaiable = true;
+		Sleep(3000);
+		/*
+		coordinate[0] = *(float*)(receiveBuffer);
+		coordinate[1] = *(float*)(receiveBuffer + 4);
+		coordinate[2] = *(float*)(receiveBuffer + 8);
 
-		/*resultReceiveLen = recv(this->sock_receive, receiveBuffer, receiveBufferLen, NULL);
-		//printf("%x\n", receiveBuffer);
-		if (resultReceiveLen > 0) {
-			coordinate[0] = *(float*)(receiveBuffer);
-			coordinate[1] = *(float*)(receiveBuffer + 4);
-			coordinate[2] = *(float*)(receiveBuffer + 8);
+		Normalize(coordinate_normalized, coordinate, normalize_max, normalize_min, this->upperBound, this->lowerBound, scales_coordinate_meter, offset_coordinate);
 
-			Normalize(coordinate_normalized, coordinate, normalize_max, normalize_min, this->upperBound, this->lowerBound, scales_coordinate_meter, offset_coordinate);
-
-			this->vector_xyz[0] = coordinate_normalized[1];
-			this->vector_xyz[1] = coordinate_normalized[2];
-			this->vector_xyz[2] = coordinate_normalized[0];
-		}*/
+		this->vector_xyz[0] = coordinate_normalized[1];
+		this->vector_xyz[1] = coordinate_normalized[2];
+		this->vector_xyz[2] = coordinate_normalized[0];
+		*/
 	}
-	Relativty::ServerDriver::Log("Thread3: successfully stopped\n");
+	ServerDriver::Log("Thread3: successfully stopped\n");
 }
 
 Relativty::HMDDriver::HMDDriver(std::string myserial):RelativtyDevice(myserial, "akira_") {
@@ -382,18 +249,17 @@ Relativty::HMDDriver::HMDDriver(std::string myserial):RelativtyDevice(myserial, 
 	static const char* const Relativty_hmd_section = "Relativty_hmd";
 
 	// openvr api stuff
-	m_sRenderModelPath = "{Relativty}/rendermodels/generic_hmd";
-	m_sBindPath = "{Relativty}/input/relativty_hmd_profile.json";
+	m_sRenderModelPath = "{Relativty}/rendermodels/nolo_controller";
+	m_sBindPath = "{Relativty}/input/vive_hmd_profile.json";
 
 	m_spExtDisplayComp = std::make_shared<Relativty::RelativtyExtendedDisplayComponent>();
 
 	// not openvr api stuff
-	Relativty::ServerDriver::Log("Loading Settings\n");
+	ServerDriver::Log("Loading Settings\n");
 	this->IPD = vr::VRSettings()->GetFloat(Relativty_hmd_section, "IPDmeters");
 	this->SecondsFromVsyncToPhotons = vr::VRSettings()->GetFloat(Relativty_hmd_section, "secondsFromVsyncToPhotons");
 	this->DisplayFrequency = vr::VRSettings()->GetFloat(Relativty_hmd_section, "displayFrequency");
 
-	this->start_tracking_server = vr::VRSettings()->GetBool(Relativty_hmd_section, "startTrackingServer");
 	this->upperBound = vr::VRSettings()->GetFloat(Relativty_hmd_section, "upperBound");
 	this->lowerBound = vr::VRSettings()->GetFloat(Relativty_hmd_section, "lowerBound");
 	this->normalizeMinX = vr::VRSettings()->GetFloat(Relativty_hmd_section, "normalizeMinX");
@@ -416,7 +282,6 @@ Relativty::HMDDriver::HMDDriver(std::string myserial):RelativtyDevice(myserial, 
 
 	char buffer[1024];
 	vr::VRSettings()->GetString(Relativty_hmd_section, "PyPath", buffer, sizeof(buffer));
-	this->PyPath = buffer;
 
 	// this is a bad idea, this should be set by the tracking loop
 	m_Pose.result = vr::TrackingResult_Running_OK;

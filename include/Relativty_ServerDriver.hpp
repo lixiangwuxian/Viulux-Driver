@@ -19,28 +19,33 @@
 
 #include "openvr_driver.h"
 #include "Relativty_HMDDriver.hpp"
-#include <NoloDeviceManager.h>
 #include <NOLOController.h>
 
-namespace Relativty {
-	class ServerDriver : public vr::IServerTrackedDeviceProvider
-	{
-	public:
-		virtual vr::EVRInitError Init(vr::IVRDriverContext* DriverContext) override;
-		virtual void Cleanup() override;
-		virtual const char* const* GetInterfaceVersions() override;
-		virtual void RunFrame() override;
-		virtual bool ShouldBlockStandbyMode() override;
-		virtual void EnterStandby() override;
-		virtual void LeaveStandby() override;
+class NoloDeviceManager;
 
-		static void Log(std::string log);
-	private:
-		HMDDriver* HMDDriver = nullptr;
-		NoloDeviceManager* m_NoloManager;
-		NOLOController* noloLeftController;//左手
-		NOLOController * noloRightController;//右手
-	};
-}
+class ServerDriver : public vr::IServerTrackedDeviceProvider
+{
+public:
+	virtual vr::EVRInitError Init(vr::IVRDriverContext* DriverContext) override;
+	virtual void Cleanup() override;
+	virtual const char* const* GetInterfaceVersions() override;
+	virtual void RunFrame() override;
+	virtual bool ShouldBlockStandbyMode() override;
+	virtual void EnterStandby() override;
+	virtual void LeaveStandby() override;
+
+	static void Log(std::string log);
+
+	void SetNoloConnected(bool bcnnected);
+
+	void UpdateHaptic(VREvent_t& eventHandle);
+	void UpdateNoloPose(const NOLOData& newData);
+	void UpdateNoloKey(ENoloDeviceType device, EControlerButtonType type,bool ifPress);
+private:
+	Relativty::HMDDriver* HMDDriver = nullptr;
+	NoloDeviceManager* m_NoloManager;
+	NOLOController* noloLeftController;//左手
+	NOLOController* noloRightController;//右手
+};
 
 #endif // RELATIVTY_SERVERDRIVER_H

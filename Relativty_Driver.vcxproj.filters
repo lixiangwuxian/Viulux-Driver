@@ -18,9 +18,6 @@
     <ClCompile Include="source\DriverFactory.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="source\Relativty_EmbeddedPython.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="source\Relativty_HMDDriver.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
@@ -36,12 +33,12 @@
     <ClCompile Include="source\NOLOController.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="source\NoloDeviceManager.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="include\Relativty_components.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="include\Relativty_EmbeddedPython.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="include\Relativty_HMDDriver.hpp">
@@ -69,9 +66,6 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="include\NOLOController.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="include\NoloDeviceManager.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

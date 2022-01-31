@@ -18,7 +18,7 @@ NOLOController::~NOLOController()
 
 EVRInitError NOLOController::Activate(uint32_t unObjectId)
 {
-	DriverLog("NOLOController Activate %s Whid ID: %d\n", m_sSerialNumber, unObjectId);
+	DriverLog("NOLOController rellay Activate %s Whid ID: %d\n", m_sSerialNumber, unObjectId);
 	m_unObjectId = unObjectId;
 	initPos();
 	m_ulPropertyContainer = vr::VRProperties()->TrackedDeviceToPropertyContainer(m_unObjectId);
@@ -29,13 +29,13 @@ EVRInitError NOLOController::Activate(uint32_t unObjectId)
 	vr::VRProperties()->SetInt32Property(m_ulPropertyContainer, Prop_Axis0Type_Int32, k_eControllerAxis_TrackPad);
 	vr::VRProperties()->SetInt32Property(m_ulPropertyContainer, Prop_Axis1Type_Int32, k_eControllerAxis_Trigger);
 	vr::VRProperties()->SetStringProperty(m_ulPropertyContainer,
-		Prop_InputProfilePath_String, "{huaweinolo}/input/controller_profile.json");
+		Prop_InputProfilePath_String, "{relativty}/input/vive_controller_profile.json");
 	
 	//ÊÖ±úÀàÐÍ
 	vr::VRProperties()->SetInt32Property(m_ulPropertyContainer, Prop_ControllerRoleHint_Int32, m_Type);
-	//ETrackedPropertyError erro;
-	//int DevClass = vr::VRProperties()->GetInt32Property(m_ulPropertyContainer, Prop_ControllerRoleHint_Int32, &erro);
-	//DriverLog("NOLOController Activate RoleHint: %d  # Erro: %d\n", DevClass, erro);
+	ETrackedPropertyError erro;
+	int DevClass = vr::VRProperties()->GetInt32Property(m_ulPropertyContainer, Prop_ControllerRoleHint_Int32, &erro);
+	DriverLog("NOLOController Activate RoleHint: %d  # Erro: %d\n", DevClass, erro);
 
 
 	uint64_t reval= vr::ButtonMaskFromId(vr::k_EButton_ApplicationMenu) |
@@ -47,6 +47,7 @@ EVRInitError NOLOController::Activate(uint32_t unObjectId)
 	InitEventHandler();
 	return VRInitError_None;
 }
+
 
 void NOLOController::InitEventHandler()
 {
@@ -172,6 +173,7 @@ void NOLOController::SendButtonUpdate(EControlerButtonType type, bool bPress)
 
 void NOLOController::onButtonPressed(EControlerButtonType type)
 {
+	DriverLog("NoloKeyPressed!");
 	SendButtonUpdate(type,true);
 }
 
@@ -180,18 +182,36 @@ void NOLOController::onButtonReleased(EControlerButtonType type)
 	SendButtonUpdate(type, false);
 }
 
-DriverPose_t NOLOController::GetPose(Controller ctrData)
+DriverPose_t NOLOController::GetPose(Controller ctrData,bool LeftOrRight)
 {
 	m_Pose.poseIsValid = true;
 	m_Pose.deviceIsConnected = true;
-	//m_Pose.vecPosition[0] = ctrData.TrackPos.Position.x;
-	//m_Pose.vecPosition[1] = ctrData.TrackPos.Position.y;
-	//m_Pose.vecPosition[2] = -ctrData.TrackPos.Position.z;
+	m_Pose.vecPosition[0] = ctrData.Position.x;
+	m_Pose.vecPosition[1] = ctrData.Position.y;
+	m_Pose.vecPosition[2] = -ctrData.Position.z;
 
-	//m_Pose.qRotation.w = -ctrData.TrackPos.Rotation.w;
-	//m_Pose.qRotation.x = ctrData.TrackPos.Rotation.x;
-	//m_Pose.qRotation.y = ctrData.TrackPos.Rotation.y;
-	//m_Pose.qRotation.z = -ctrData.TrackPos.Rotation.z;
+	m_Pose.qRotation.w = -ctrData.Rotation.w;
+	m_Pose.qRotation.x = ctrData.Rotation.x;
+	m_Pose.qRotation.y = ctrData.Rotation.y;
+	m_Pose.qRotation.z = -ctrData.Rotation.z;
+
+	/*if (LeftOrRight == true) {//left
+		m_Pose.vecVelocity[0] = ctrData.TrackPos.Velocity.x;
+		m_Pose.vecVelocity[1] = ctrData.TrackPos.Velocity.y;
+		m_Pose.vecVelocity[2] = ctrData.TrackPos.Velocity.z;
+		m_Pose.vecAngularVelocity[0] = ctrData.TrackPos.AngularVelocity.x;
+		m_Pose.vecAngularVelocity[1] = ctrData.TrackPos.AngularVelocity.y;
+		m_Pose.vecAngularVelocity[2] = ctrData.TrackPos.AngularVelocity.z;
+
+	}
+	else{
+		m_Pose.vecVelocity[0] = ctrData.TrackPos.Velocity.x;
+		m_Pose.vecVelocity[1] = ctrData.TrackPos.Velocity.y;
+		m_Pose.vecVelocity[2] = ctrData.TrackPos.Velocity.z;
+		m_Pose.vecAngularVelocity[0] = ctrData.TrackPos.AngularVelocity.x;
+		m_Pose.vecAngularVelocity[1] = ctrData.TrackPos.AngularVelocity.y;
+		m_Pose.vecAngularVelocity[2] = ctrData.TrackPos.AngularVelocity.z;
+	}
 
 	//m_Pose.vecVelocity[0] = ctrData.TrackPos.Velocity.x;
 	//m_Pose.vecVelocity[1] = ctrData.TrackPos.Velocity.y;
@@ -199,7 +219,7 @@ DriverPose_t NOLOController::GetPose(Controller ctrData)
 	//m_Pose.vecAngularVelocity[0] = ctrData.TrackPos.AngularVelocity.x;
 	//m_Pose.vecAngularVelocity[1] = ctrData.TrackPos.AngularVelocity.y;
 	//m_Pose.vecAngularVelocity[2] = ctrData.TrackPos.AngularVelocity.z;
-	
+
 	if (IsTurnAround)
 	{
 		//NQuaternion rot(ctrData.TrackPos.Rotation);
@@ -210,7 +230,7 @@ DriverPose_t NOLOController::GetPose(Controller ctrData)
 		//m_Pose.qRotation.x = rot.x;
 		//m_Pose.qRotation.y = rot.y;
 		//m_Pose.qRotation.z = -rot.z;
-	}
+	}*/
 	return m_Pose;
 }
 
@@ -219,11 +239,11 @@ std::string NOLOController::GetSerialNumber()
 	return m_sSerialNumber;
 }
 
-void NOLOController::UpdatePose(Controller ctrData)
+void NOLOController::UpdatePose(Controller ctrData,bool leftOrRight)
 {
 	if (m_unObjectId != vr::k_unTrackedDeviceIndexInvalid)
 	{
-		vr::VRServerDriverHost()->TrackedDevicePoseUpdated(m_unObjectId, GetPose(ctrData), sizeof(DriverPose_t));
+		vr::VRServerDriverHost()->TrackedDevicePoseUpdated(m_unObjectId, GetPose(ctrData,leftOrRight), sizeof(DriverPose_t));
 		if (ctrData.Touched)
 		{
 			float x = ctrData.TouchAxis.x;
@@ -233,6 +253,7 @@ void NOLOController::UpdatePose(Controller ctrData)
 		}
 	}
 }
+
 
 
 void NOLOController::SetTurnAround(bool bTurn)

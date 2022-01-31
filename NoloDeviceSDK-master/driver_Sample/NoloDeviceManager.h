@@ -4,9 +4,10 @@
 #pragma comment(lib,"NoloClientLib.lib")
 using namespace NOLOVR;
 
+using namespace vr;
 
 class CServerDriver;
-class NoloDeviceManager:public INOLOZQMEvent
+class NoloDeviceManager:public INOLOZMQEvent
 {
 public:
 	NoloDeviceManager(CServerDriver *server);
@@ -17,7 +18,7 @@ protected:
 	// Í¨¹ý INOLOZQMEvent ¼Ì³Ð
 	virtual void OnZMQConnected() override;
 	virtual void OnZMQDisConnected() override;
-	virtual void OnKeyDoubleClicked(EControlerButtonType KeyType) override;
+	virtual void OnKeyDoubleClicked(EControlerButtonType KeyType);
 	virtual void OnNewData(const NOLOData & _noloData) override;
 
 	//virtual void onButtonPressed(ENoloDeviceType device, EControlerButtonType type) override;
