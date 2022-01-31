@@ -29,8 +29,6 @@ void NoloDeviceManager::OnZMQConnected()
 
 void NoloDeviceManager::OnZMQDisConnected()
 {
-
-
 	m_Server->SetNoloConnected(false);
 }
 
@@ -74,3 +72,6 @@ void NoloDeviceManager::OnButtonRelease(ENoloDeviceType device, EControlerButton
 	m_Server->UpdateNoloKey(device,type,false);
 }
 
+void NoloDeviceManager::OnKeyDoubleClicked(ENoloDeviceType device, UCHAR Keys)
+{
+}

@@ -38,14 +38,19 @@ public:
 
 	void SetNoloConnected(bool bcnnected);
 
-	void UpdateHaptic(VREvent_t& eventHandle);
 	void UpdateNoloPose(const NOLOData& newData);
+	void UpdateHaptic(VREvent_t& eventHandle);
 	void UpdateNoloKey(ENoloDeviceType device, EControlerButtonType type,bool ifPress);
+
 private:
 	Relativty::HMDDriver* HMDDriver = nullptr;
 	NoloDeviceManager* m_NoloManager;
 	NOLOController* noloLeftController;//◊Û ÷
 	NOLOController* noloRightController;//”“ ÷
+
+	bool m_bEventThreadRunning;
+	std::thread send_haptic_thread_worker;
+	void Send_haptic_event_thread();
 };
 
 #endif // RELATIVTY_SERVERDRIVER_H

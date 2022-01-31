@@ -194,8 +194,8 @@ DriverPose_t NOLOController::GetPose(Controller ctrData,bool LeftOrRight)
 	m_Pose.qRotation.x = ctrData.Rotation.x;
 	m_Pose.qRotation.y = ctrData.Rotation.y;
 	m_Pose.qRotation.z = -ctrData.Rotation.z;
-
-	/*if (LeftOrRight == true) {//left
+	/*
+	if (LeftOrRight == true) {//left
 		m_Pose.vecVelocity[0] = ctrData.TrackPos.Velocity.x;
 		m_Pose.vecVelocity[1] = ctrData.TrackPos.Velocity.y;
 		m_Pose.vecVelocity[2] = ctrData.TrackPos.Velocity.z;
@@ -211,26 +211,18 @@ DriverPose_t NOLOController::GetPose(Controller ctrData,bool LeftOrRight)
 		m_Pose.vecAngularVelocity[0] = ctrData.TrackPos.AngularVelocity.x;
 		m_Pose.vecAngularVelocity[1] = ctrData.TrackPos.AngularVelocity.y;
 		m_Pose.vecAngularVelocity[2] = ctrData.TrackPos.AngularVelocity.z;
-	}
-
-	//m_Pose.vecVelocity[0] = ctrData.TrackPos.Velocity.x;
-	//m_Pose.vecVelocity[1] = ctrData.TrackPos.Velocity.y;
-	//m_Pose.vecVelocity[2] = ctrData.TrackPos.Velocity.z;
-	//m_Pose.vecAngularVelocity[0] = ctrData.TrackPos.AngularVelocity.x;
-	//m_Pose.vecAngularVelocity[1] = ctrData.TrackPos.AngularVelocity.y;
-	//m_Pose.vecAngularVelocity[2] = ctrData.TrackPos.AngularVelocity.z;
-
+	}*/
 	if (IsTurnAround)
 	{
-		//NQuaternion rot(ctrData.TrackPos.Rotation);
-		//NQuaternion rotBackQ(0, 1, 0, 0);
-		//rot = rot * rotBackQ;
+		NQuaternion rot(ctrData.Rotation);
+		NQuaternion rotBackQ(0, 1, 0, 0);
+		rot = rot * rotBackQ;
 
-		//m_Pose.qRotation.w = -rot.w;
-		//m_Pose.qRotation.x = rot.x;
-		//m_Pose.qRotation.y = rot.y;
-		//m_Pose.qRotation.z = -rot.z;
-	}*/
+		m_Pose.qRotation.w = -rot.w;
+		m_Pose.qRotation.x = rot.x;
+		m_Pose.qRotation.y = rot.y;
+		m_Pose.qRotation.z = -rot.z;
+	}
 	return m_Pose;
 }
 

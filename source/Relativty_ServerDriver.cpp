@@ -29,15 +29,12 @@ vr::EVRInitError ServerDriver::Init(vr::IVRDriverContext* DriverContext) {
 	}
 	#ifdef DRIVERLOG_H
 	InitDriverLog(vr::VRDriverLog());
-	DriverLog("Relativty driver version 0.1.1"); // report driver version
-	DriverLog("Thread1: hid quaternion packet listener loop");
+	DriverLog("Relativty driver version 0.1.1");
+	DriverLog("Thread1: HMD quat & pose loop");
 	DriverLog("Thread2: update driver pose loop");
-	DriverLog("Thread3: receive positional data from python loop");
 	#endif
 
 	this->Log("Relativty Init successful.\n");
-
-	OpenNoloZeroMQ();
 
 	this->HMDDriver = new Relativty::HMDDriver("zero");
 	this->m_NoloManager = new NoloDeviceManager(this);
@@ -53,7 +50,13 @@ vr::EVRInitError ServerDriver::Init(vr::IVRDriverContext* DriverContext) {
 	vr::VRServerDriverHost()->TrackedDeviceAdded(noloRightController->GetSerialNumber().c_str(), vr::TrackedDeviceClass_Controller, this->noloRightController);
 
 	// GetSerialNumber() is there for a reason!
-
+	m_bEventThreadRunning = false;
+	if (!m_bEventThreadRunning)
+	{
+		m_bEventThreadRunning = true;
+		send_haptic_thread_worker = std::thread::thread(&ServerDriver::Send_haptic_event_thread, this);
+		send_haptic_thread_worker.detach();
+	}
 	return vr::VRInitError_None;
 }
 
@@ -99,7 +102,7 @@ void ServerDriver::Log(std::string log) {
 void ServerDriver::SetNoloConnected(bool bcnnected)
 {
 	if (HMDDriver != nullptr) {
-		HMDDriver
+		HMDDriver->SetNoloConnected(bcnnected);
 	}
 }
 
@@ -117,7 +120,7 @@ int ConvertAmplitude(float fAmplitude)
 
 void ServerDriver::UpdateHaptic(VREvent_t& eventHandle)
 {
-	//DriverLog("#=========Type=%d== InDex=%d=========\n", eventHandle.eventType, eventHandle.trackedDeviceIndex);
+	DriverLog("#=========Type=%d== InDex=%d=========\n", eventHandle.eventType, eventHandle.trackedDeviceIndex);
 	if (eventHandle.eventType == VREvent_Input_HapticVibration)
 	{
 		VREvent_HapticVibration_t data = eventHandle.data.hapticVibration;
@@ -149,5 +152,25 @@ void ServerDriver::UpdateNoloKey(ENoloDeviceType device, EControlerButtonType ty
 	}
 	else if(device == NOLOVR::eRightController){
 		noloRightController->SendButtonUpdate(type, ifPress);
+	}
+}
+
+void ServerDriver::Send_haptic_event_thread()
+{
+	VREvent_t pEventHandle;
+	bool bHasEvent = false;
+	while (m_bEventThreadRunning)
+	{
+		bHasEvent = vr::VRServerDriverHost()->PollNextEvent(&pEventHandle, sizeof(VREvent_t));
+		//getEvent
+		if (bHasEvent)
+		{
+			UpdateHaptic(pEventHandle);
+		}
+		else
+		{
+			Sleep(3);
+		}
+		memset(&pEventHandle, 0, sizeof(VREvent_t));
 	}
 }

@@ -65,8 +65,6 @@ vr::EVRInitError Relativty::HMDDriver::Activate(uint32_t unObjectId) {
 
 	this->retrieve_quaternion_isOn = true;
 	this->retrieve_quaternion_thread_worker = std::thread(&Relativty::HMDDriver::retrieve_device_quaternion_packet_threaded, this);
-	this->retrieve_vector_thread_worker = std::thread(&Relativty::HMDDriver::retrieve_client_vector_packet_threaded, this);
-
 	this->update_pose_thread_worker = std::thread(&Relativty::HMDDriver::update_pose_threaded, this);
 
 	return vr::VRInitError_None;
@@ -212,36 +210,9 @@ void Relativty::HMDDriver::retrieve_device_quaternion_packet_threaded() {//Õâ¸öº
 	ServerDriver::Log("Thread1: successfully stopped\n");
 }
 
-void Relativty::HMDDriver::retrieve_client_vector_packet_threaded() {
-
-	float normalize_min[3]{ this->normalizeMinX, this->normalizeMinY, this->normalizeMinZ};
-	float normalize_max[3]{ this->normalizeMaxX, this->normalizeMaxY, this->normalizeMaxZ};
-	float scales_coordinate_meter[3]{ this->scalesCoordinateMeterX, this->scalesCoordinateMeterY, this->scalesCoordinateMeterZ};
-	float offset_coordinate[3] = { this->offsetCoordinateX, this->offsetCoordinateY, this->offsetCoordinateZ};
-
-	float coordinate[3]{ 0, 0, 0 };
-	float coordinate_normalized[3];
-
-	NOLOData nolo_HMD_data;
-
-	this->retrieve_vector_isOn = true;
-
-	while (this->retrieve_vector_isOn) {
-
-		Sleep(3000);
-		/*
-		coordinate[0] = *(float*)(receiveBuffer);
-		coordinate[1] = *(float*)(receiveBuffer + 4);
-		coordinate[2] = *(float*)(receiveBuffer + 8);
-
-		Normalize(coordinate_normalized, coordinate, normalize_max, normalize_min, this->upperBound, this->lowerBound, scales_coordinate_meter, offset_coordinate);
-
-		this->vector_xyz[0] = coordinate_normalized[1];
-		this->vector_xyz[1] = coordinate_normalized[2];
-		this->vector_xyz[2] = coordinate_normalized[0];
-		*/
-	}
-	ServerDriver::Log("Thread3: successfully stopped\n");
+void Relativty::HMDDriver::SetNoloConnected(bool bcnnected)
+{
+	m_BNoloConnected = bcnnected;
 }
 
 Relativty::HMDDriver::HMDDriver(std::string myserial):RelativtyDevice(myserial, "akira_") {
@@ -259,29 +230,6 @@ Relativty::HMDDriver::HMDDriver(std::string myserial):RelativtyDevice(myserial, 
 	this->IPD = vr::VRSettings()->GetFloat(Relativty_hmd_section, "IPDmeters");
 	this->SecondsFromVsyncToPhotons = vr::VRSettings()->GetFloat(Relativty_hmd_section, "secondsFromVsyncToPhotons");
 	this->DisplayFrequency = vr::VRSettings()->GetFloat(Relativty_hmd_section, "displayFrequency");
-
-	this->upperBound = vr::VRSettings()->GetFloat(Relativty_hmd_section, "upperBound");
-	this->lowerBound = vr::VRSettings()->GetFloat(Relativty_hmd_section, "lowerBound");
-	this->normalizeMinX = vr::VRSettings()->GetFloat(Relativty_hmd_section, "normalizeMinX");
-	this->normalizeMinY = vr::VRSettings()->GetFloat(Relativty_hmd_section, "normalizeMinY");
-	this->normalizeMinZ = vr::VRSettings()->GetFloat(Relativty_hmd_section, "normalizeMinZ");
-	this->normalizeMaxX = vr::VRSettings()->GetFloat(Relativty_hmd_section, "normalizeMaxX");
-	this->normalizeMaxY = vr::VRSettings()->GetFloat(Relativty_hmd_section, "normalizeMaxY");
-	this->normalizeMaxZ = vr::VRSettings()->GetFloat(Relativty_hmd_section, "normalizeMaxZ");
-	this->scalesCoordinateMeterX = vr::VRSettings()->GetFloat(Relativty_hmd_section, "scalesCoordinateMeterX");
-	this->scalesCoordinateMeterY = vr::VRSettings()->GetFloat(Relativty_hmd_section, "scalesCoordinateMeterY");
-	this->scalesCoordinateMeterZ = vr::VRSettings()->GetFloat(Relativty_hmd_section, "scalesCoordinateMeterZ");
-	this->offsetCoordinateX = vr::VRSettings()->GetFloat(Relativty_hmd_section, "offsetCoordinateX");
-	this->offsetCoordinateY = vr::VRSettings()->GetFloat(Relativty_hmd_section, "offsetCoordinateY");
-	this->offsetCoordinateZ = vr::VRSettings()->GetFloat(Relativty_hmd_section, "offsetCoordinateZ");
-
-	this->m_iPid = vr::VRSettings()->GetInt32(Relativty_hmd_section, "hmdPid");
-	this->m_iVid = vr::VRSettings()->GetInt32(Relativty_hmd_section, "hmdVid");
-
-	this->m_bIMUpktIsDMP = vr::VRSettings()->GetBool(Relativty_hmd_section, "hmdIMUdmpPackets");
-
-	char buffer[1024];
-	vr::VRSettings()->GetString(Relativty_hmd_section, "PyPath", buffer, sizeof(buffer));
 
 	// this is a bad idea, this should be set by the tracking loop
 	m_Pose.result = vr::TrackingResult_Running_OK;

@@ -22,8 +22,7 @@ protected:
 
 	virtual void OnButtonPressed(ENoloDeviceType device, EControlerButtonType type) override;
 	virtual void OnButtonRelease(ENoloDeviceType device, EControlerButtonType type) override;
-	//virtual void onButtonDoubleClicked(ENoloDeviceType device, EControlerButtonType type)override;
-	//virtual void onNewData(const NoloData &data) override;
+	virtual void OnKeyDoubleClicked(ENoloDeviceType device, UCHAR Keys)override;
 private:
 	ServerDriver *m_Server;
 };

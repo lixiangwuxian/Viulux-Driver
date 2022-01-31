@@ -37,12 +37,11 @@ namespace Relativty {
 		// Inherited from RelativtyDevice, to be overridden
 		virtual vr::EVRInitError Activate(uint32_t unObjectId);
 		virtual void Deactivate();
+		void SetNoloConnected(bool bcnnected);
 
 	private:
-		int32_t m_iPid;
-		int32_t m_iVid;
 
-		bool m_bIMUpktIsDMP;
+		bool m_BNoloConnected;
 
 		float SecondsFromVsyncToPhotons;
 		float DisplayFrequency;
@@ -61,6 +60,8 @@ namespace Relativty {
 
 		std::thread retrieve_quaternion_thread_worker;
 		void retrieve_device_quaternion_packet_threaded();
+
+		
 
 		std::atomic<float> vector_xyz[3];
 		std::atomic<bool> retrieve_vector_isOn = false;
@@ -86,11 +87,8 @@ namespace Relativty {
 		float offsetCoordinateZ;
 
 		std::atomic<bool> serverNotReady = true;
-		std::thread retrieve_vector_thread_worker;
-		void retrieve_client_vector_packet_threaded();
 
 		std::thread update_pose_thread_worker;
 		void update_pose_threaded();
-
 	};
 }
