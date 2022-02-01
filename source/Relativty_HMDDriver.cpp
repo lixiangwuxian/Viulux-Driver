@@ -183,7 +183,9 @@ void Relativty::HMDDriver::TurnAround()
 
 void Relativty::HMDDriver::RecenterHMD(const HMD& HmdData, const Controller& CtrData)
 {
-
+	m_HmdRecenterData = HmdData;
+	m_RecenterContoller = CtrData;
+	m_BRecentering = true;
 }
 
 Relativty::HMDDriver::HMDDriver(std::string myserial):RelativtyDevice(myserial, "akira_") {
@@ -192,7 +194,7 @@ Relativty::HMDDriver::HMDDriver(std::string myserial):RelativtyDevice(myserial, 
 	static const char* const Relativty_hmd_section = "Relativty_hmd";
 
 	// openvr api stuff
-	m_sRenderModelPath = "{Relativty}/rendermodels/nolo_controller";
+	m_sRenderModelPath = "{Relativty}/rendermodels/generic_hmd";
 	m_sBindPath = "{Relativty}/input/vive_hmd_profile.json";
 
 	m_spExtDisplayComp = std::make_shared<Relativty::RelativtyExtendedDisplayComponent>();

@@ -8,7 +8,7 @@ NOLOController::NOLOController(std::string std, ETrackedControllerRole type)
 	IsTurnAround = false;
 	m_ulPropertyContainer = vr::k_ulInvalidPropertyContainer;
 	m_sSerialNumber = std;
-	m_sModelNumber = "vr_controller_vive_1_5";
+	m_sModelNumber = "{Relativty}/rendermodels/nolo_controller";
 	m_Type = type;
 }
 
@@ -18,7 +18,7 @@ NOLOController::~NOLOController()
 
 EVRInitError NOLOController::Activate(uint32_t unObjectId)
 {
-	DriverLog("NOLOController rellay Activate %s Whid ID: %d\n", m_sSerialNumber, unObjectId);
+	DriverLog("NOLOController really Activate %s Whid ID: %d\n", m_sSerialNumber, unObjectId);
 	m_unObjectId = unObjectId;
 	initPos();
 	m_ulPropertyContainer = vr::VRProperties()->TrackedDeviceToPropertyContainer(m_unObjectId);

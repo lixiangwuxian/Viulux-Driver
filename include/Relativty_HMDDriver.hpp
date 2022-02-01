@@ -49,6 +49,10 @@ namespace Relativty {
 		ohmd_device *HMDRot;
 		ohmd_context* ctx;
 
+		NOLOVR::HMD  m_HmdRecenterData;
+		NOLOVR::Controller m_RecenterContoller;
+		bool m_BRecentering;
+
 		bool m_BNoloConnected;
 		bool m_IsTurnAround;
 		NOLOVR::NVector3 m_hmdTurnBackPos;

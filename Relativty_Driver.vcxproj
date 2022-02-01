@@ -196,10 +196,11 @@
   </ItemGroup>
   <ItemGroup>
     <Library Include="..\..\..\..\..\SteamVR-OpenHMD-master\subprojects\openhmd\Release\openhmd.lib" />
-    <Library Include="NoloDeviceSDK-master\NoloClient\lib64\NoloClientLib.lib" />
+    <Library Include="libraries\x64\NoloClientLib.lib" />
   </ItemGroup>
   <ItemGroup>
-    <None Include="NoloDeviceSDK-master\NoloClient\lib64\NoloClientLib.dll" />
+    <None Include="libraries\x64\libzmq-64.dll" />
+    <None Include="libraries\x64\NoloClientLib.dll" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
