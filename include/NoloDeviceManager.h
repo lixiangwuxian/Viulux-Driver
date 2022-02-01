@@ -17,12 +17,10 @@ protected:
 	// Í¨¹ý INOLOZQMEvent ¼Ì³Ð
 	virtual void OnZMQConnected() override;
 	virtual void OnZMQDisConnected() override;
-	virtual void OnKeyDoubleClicked(EControlerButtonType KeyType);
+	virtual void OnKeyDoubleClicked(ENoloDeviceType DevType, UCHAR Keys)override;
 	virtual void OnNewData(const NOLOData & _noloData) override;
-
 	virtual void OnButtonPressed(ENoloDeviceType device, EControlerButtonType type) override;
 	virtual void OnButtonRelease(ENoloDeviceType device, EControlerButtonType type) override;
-	virtual void OnKeyDoubleClicked(ENoloDeviceType device, UCHAR Keys)override;
 private:
 	ServerDriver *m_Server;
 };

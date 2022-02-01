@@ -41,13 +41,15 @@ public:
 	void UpdateNoloPose(const NOLOData& newData);
 	void UpdateHaptic(VREvent_t& eventHandle);
 	void UpdateNoloKey(ENoloDeviceType device, EControlerButtonType type,bool ifPress);
-
+	void TurnAroundHMD();
+	void RecenterHMD(const HMD& HmdData, const Controller& CtrData);
 private:
 	Relativty::HMDDriver* HMDDriver = nullptr;
 	NoloDeviceManager* m_NoloManager;
 	NOLOController* noloLeftController;//◊Û ÷
 	NOLOController* noloRightController;//”“ ÷
 
+	
 	bool m_bEventThreadRunning;
 	std::thread send_haptic_thread_worker;
 	void Send_haptic_event_thread();

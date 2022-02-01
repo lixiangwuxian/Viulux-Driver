@@ -186,14 +186,17 @@ DriverPose_t NOLOController::GetPose(Controller ctrData,bool LeftOrRight)
 {
 	m_Pose.poseIsValid = true;
 	m_Pose.deviceIsConnected = true;
-	m_Pose.vecPosition[0] = ctrData.Position.x;
+	m_Pose.vecPosition[0] = -ctrData.Position.x;
 	m_Pose.vecPosition[1] = ctrData.Position.y;
-	m_Pose.vecPosition[2] = -ctrData.Position.z;
+	m_Pose.vecPosition[2] = ctrData.Position.z;
+
+	NQuaternion offsetRot(0,1,0,0);
+	ctrData.Rotation = offsetRot * ctrData.Rotation;
 
 	m_Pose.qRotation.w = -ctrData.Rotation.w;
-	m_Pose.qRotation.x = ctrData.Rotation.x;
+	m_Pose.qRotation.x = -ctrData.Rotation.x;
 	m_Pose.qRotation.y = ctrData.Rotation.y;
-	m_Pose.qRotation.z = -ctrData.Rotation.z;
+	m_Pose.qRotation.z = ctrData.Rotation.z;
 	/*
 	if (LeftOrRight == true) {//left
 		m_Pose.vecVelocity[0] = ctrData.TrackPos.Velocity.x;

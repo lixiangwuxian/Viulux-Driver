@@ -32,25 +32,28 @@ void NoloDeviceManager::OnZMQDisConnected()
 	m_Server->SetNoloConnected(false);
 }
 
-void NoloDeviceManager::OnKeyDoubleClicked(EControlerButtonType KeyType)
+void NoloDeviceManager::OnKeyDoubleClicked(ENoloDeviceType DevType, UCHAR Keys)
 {
+	ServerDriver::Log("Key Double Clicked!\n");
 	NOLOData TempData = GetNoloData();
-	if (KeyType == EControlerButtonType::eSystemBtn)
+	if(Keys&&EControlerButtonType::eSystemBtn)
 	{
+		
 		Controller leftController = TempData.leftData;
 		Controller rightController = TempData.rightData;
+		HMD TempHmdData = TempData.hmdData;
 		if (leftController.Buttons & EControlerButtonType::eSystemBtn)
 		{
-			//m_Server->RecenterHmd(TempHmdData, leftController);
+			m_Server->RecenterHMD(TempHmdData, leftController);
 		}
 		else if (rightController.Buttons & EControlerButtonType::eSystemBtn)
 		{
-			//m_Server->RecenterHmd(TempHmdData, rightController);
+			m_Server->RecenterHMD(TempHmdData, rightController);
 		}
 	}
-	if (KeyType == EControlerButtonType::eMenuBtn)
+	if (Keys & EControlerButtonType::eMenuBtn)
 	{
-		//m_Server->TurnArroundHmd();
+		m_Server->TurnAroundHMD();
 	}
 
 }
@@ -72,6 +75,3 @@ void NoloDeviceManager::OnButtonRelease(ENoloDeviceType device, EControlerButton
 	m_Server->UpdateNoloKey(device,type,false);
 }
 
-void NoloDeviceManager::OnKeyDoubleClicked(ENoloDeviceType device, UCHAR Keys)
-{
-}

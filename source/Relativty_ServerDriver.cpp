@@ -54,7 +54,7 @@ vr::EVRInitError ServerDriver::Init(vr::IVRDriverContext* DriverContext) {
 	if (!m_bEventThreadRunning)
 	{
 		m_bEventThreadRunning = true;
-		send_haptic_thread_worker = std::thread::thread(&ServerDriver::Send_haptic_event_thread, this);
+		send_haptic_thread_worker = std::thread::thread(&ServerDriver::Send_haptic_event_thread, this);//Õð¶¯Ïß³Ì
 		send_haptic_thread_worker.detach();
 	}
 	return vr::VRInitError_None;
@@ -153,6 +153,16 @@ void ServerDriver::UpdateNoloKey(ENoloDeviceType device, EControlerButtonType ty
 	else if(device == NOLOVR::eRightController){
 		noloRightController->SendButtonUpdate(type, ifPress);
 	}
+}
+
+void ServerDriver::TurnAroundHMD()
+{
+	HMDDriver->TurnAround();
+}
+
+void ServerDriver::RecenterHMD(const HMD& HmdData, const Controller& CtrData)
+{
+	this->HMDDriver->RecenterHMD(HmdData,CtrData);
 }
 
 void ServerDriver::Send_haptic_event_thread()

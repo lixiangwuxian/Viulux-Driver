@@ -23,6 +23,7 @@
 #include "Relativty_base_device.h"
 
 #include "NoloClientLib.h"
+#include "openhmd.h"
 
 namespace Relativty {
 	class HMDDriver : public RelativtyDevice<false>
@@ -38,10 +39,19 @@ namespace Relativty {
 		virtual vr::EVRInitError Activate(uint32_t unObjectId);
 		virtual void Deactivate();
 		void SetNoloConnected(bool bcnnected);
+		void TurnAround();
+		void RecenterHMD(const NOLOVR::HMD& HmdData, const NOLOVR::Controller& CtrData);
 
 	private:
 
+		NOLOVR::NOLOData nolo_HMD_data;
+
+		ohmd_device *HMDRot;
+		ohmd_context* ctx;
+
 		bool m_BNoloConnected;
+		bool m_IsTurnAround;
+		NOLOVR::NVector3 m_hmdTurnBackPos;
 
 		float SecondsFromVsyncToPhotons;
 		float DisplayFrequency;
@@ -49,46 +59,22 @@ namespace Relativty {
 		float HeadToEyeDepth;
 
 		vr::DriverPose_t lastPose = {0};
-		hid_device* handle;
 
-		std::atomic<float> quat[4];
+		//std::atomic<float> quat[4];
+		NOLOVR::NQuaternion quat;
+
+
 		std::atomic<bool> retrieve_quaternion_isOn = false;
-		std::atomic<bool> new_quaternion_avaiable = false;
 
-		std::atomic<float> qconj[4] = {0, 0, 0, 1};
+		NOLOVR::NQuaternion qconj;
 		void calibrate_quaternion();
 
-		std::thread retrieve_quaternion_thread_worker;
 		void retrieve_device_quaternion_packet_threaded();
 
-		
+		//void retrieve_device_quaternion_packet_threaded();
 
-		std::atomic<float> vector_xyz[3];
-		std::atomic<bool> retrieve_vector_isOn = false;
-		std::atomic<bool> new_vector_avaiable = false;
-		SOCKET sock, sock_receive;
-		float upperBound;
-		float lowerBound;
-
-		float normalizeMinX;
-		float normalizeMinY;
-		float normalizeMinZ;
-
-		float normalizeMaxX;
-		float normalizeMaxY;
-		float normalizeMaxZ;
-
-		float scalesCoordinateMeterX;
-		float scalesCoordinateMeterY;
-		float scalesCoordinateMeterZ;
-
-		float offsetCoordinateX;
-		float offsetCoordinateY;
-		float offsetCoordinateZ;
-
-		std::atomic<bool> serverNotReady = true;
-
-		std::thread update_pose_thread_worker;
-		void update_pose_threaded();
+		NOLOVR::NVector3 vector_xyz;
+		std::thread retrieve_quaternion_thread_worker;
+		//std::atomic<float> vector_xyz[3];
 	};
 }

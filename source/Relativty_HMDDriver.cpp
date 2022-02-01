@@ -62,10 +62,20 @@ inline void Normalize(float norma[3], float v[3], float max[3], float min[3], in
 vr::EVRInitError Relativty::HMDDriver::Activate(uint32_t unObjectId) {
 	RelativtyDevice::Activate(unObjectId);
 	this->setProperties();
-
+	ctx = ohmd_ctx_create();
+	int num_devices = ohmd_ctx_probe(ctx);
+	HMDRot= ohmd_list_open_device(ctx, 0);
+	float qres[4];
+	ServerDriver::Log("Load OpenHMD Successful!!\n");
+	
+	qconj = NOLOVR::NQuaternion(0, sqrt(0.5), 0, sqrt(0.5));
+	qconj = NOLOVR::NQuaternion(0, sqrt(0.5), 0, sqrt(0.5));
+	qconj = NOLOVR::NQuaternion(0, sqrt(0.5), 0, sqrt(0.5));
+	qconj = qconj * NOLOVR::NQuaternion(1, 0, 0, 0);
+	
 	this->retrieve_quaternion_isOn = true;
 	this->retrieve_quaternion_thread_worker = std::thread(&Relativty::HMDDriver::retrieve_device_quaternion_packet_threaded, this);
-	this->update_pose_thread_worker = std::thread(&Relativty::HMDDriver::update_pose_threaded, this);
+	//this->update_pose_thread_worker = std::thread(&Relativty::HMDDriver::update_pose_threaded, this);
 
 	return vr::VRInitError_None;
 }
@@ -75,137 +85,78 @@ void Relativty::HMDDriver::Deactivate() {
 	this->retrieve_quaternion_thread_worker.join();
 
 	RelativtyDevice::Deactivate();
-	this->update_pose_thread_worker.join();
+	//this->update_pose_thread_worker.join();
 
 	ServerDriver::Log("Thread0: all threads exit correctly \n");
 }
 
-void Relativty::HMDDriver::update_pose_threaded() {
-	ServerDriver::Log("Thread2: successfully started\n");
-	while (m_unObjectId != vr::k_unTrackedDeviceIndexInvalid) {
-		if (this->new_quaternion_avaiable && this->new_vector_avaiable) {
-			m_Pose.qRotation.w = this->quat[0];
-			m_Pose.qRotation.x = this->quat[1];
-			m_Pose.qRotation.y = this->quat[2];
-			m_Pose.qRotation.z = this->quat[3];
-
-			m_Pose.vecPosition[0] = this->vector_xyz[0];
-			m_Pose.vecPosition[1] = this->vector_xyz[1];
-			m_Pose.vecPosition[2] = this->vector_xyz[2];
-			vr::VRServerDriverHost()->TrackedDevicePoseUpdated(m_unObjectId, m_Pose, sizeof(vr::DriverPose_t));
-			this->new_quaternion_avaiable = false;
-			this->new_vector_avaiable = false;
-
-		} /*else if (this->new_quaternion_avaiable) {
-			m_Pose.qRotation.w = this->quat[0];
-			m_Pose.qRotation.x = this->quat[1];
-			m_Pose.qRotation.y = this->quat[2];
-			m_Pose.qRotation.z = this->quat[3];
-
-			vr::VRServerDriverHost()->TrackedDevicePoseUpdated(m_unObjectId, m_Pose, sizeof(vr::DriverPose_t));
-			this->new_quaternion_avaiable = false;
-
-		} else if (this->new_vector_avaiable) {
-
-			m_Pose.vecPosition[0] = this->vector_xyz[0];
-			m_Pose.vecPosition[1] = this->vector_xyz[1];
-			m_Pose.vecPosition[2] = this->vector_xyz[2];
-
-			vr::VRServerDriverHost()->TrackedDevicePoseUpdated(m_unObjectId, m_Pose, sizeof(vr::DriverPose_t));
-			this->new_vector_avaiable = false;
-
-		}*/
-	}
-	ServerDriver::Log("Thread2: successfully stopped\n");
-}
 
 void Relativty::HMDDriver::calibrate_quaternion() {
-	if ((0x01 & GetAsyncKeyState(0x52)) != 0) {
-		qconj[0].store(quat[0]);
-		qconj[1].store(-1 * quat[1]);
-		qconj[2].store(-1 * quat[2]);
-		qconj[3].store(-1 * quat[3]);
-	}
+	/*if ((0x01 & GetAsyncKeyState(0x52)) != 0) {
+		qconj.w.store(quat.w);
+		qconj.x.store(-1 * quat.x);
+		qconj.y.store(-1 * quat.y);
+		qconj.z.store(-1 * quat.z);
+	}*/
 	float qres[4];
-
-	qres[0] = qconj[0] * quat[0] - qconj[1] * quat[1] - qconj[2] * quat[2] - qconj[3] * quat[3];
-	qres[1] = qconj[0] * quat[1] + qconj[1] * quat[0] + qconj[2] * quat[3] - qconj[3] * quat[2];
-	qres[2] = qconj[0] * quat[2] - qconj[1] * quat[3] + qconj[2] * quat[0] + qconj[3] * quat[1];
-	qres[3] = qconj[0] * quat[3] + qconj[1] * quat[2] - qconj[2] * quat[1] + qconj[3] * quat[0];
-
-	this->quat[0] = qres[0];
-	this->quat[1] = qres[1];
-	this->quat[2] = qres[2];
-	this->quat[3] = qres[3];
+	/*
+	qres[0] = qconj.w * quat.w - qconj.x * quat.x - qconj.y * quat.y - qconj.z * quat.z;
+	qres[1] = qconj.w * quat.x + qconj.x * quat.w + qconj.y * quat.z - qconj.z * quat.y;
+	qres[2] = qconj.w * quat.y - qconj.x * quat.z + qconj.y * quat.w + qconj.z * quat.x;
+	qres[3] = qconj.w * quat.z + qconj.x * quat.y - qconj.y * quat.x + qconj.z * quat.w;
+	*/
+	this->quat.w = qres[0];
+	this->quat.x = qres[1];
+	this->quat.y = qres[2];
+	this->quat.z = qres[3];
 }
 
-void Relativty::HMDDriver::retrieve_device_quaternion_packet_threaded() {//这个函数用来接收设备的缓冲区并转换为所需的四元数
-
-	//this struct is for mpu9250 support
-	#pragma pack(push, 1)
-	struct pak {
-		uint8_t id;
-		float quat[4];
-		uint8_t rest[47];
-	};
-	#pragma pack(pop)
-	int result=1;
+void Relativty::HMDDriver::retrieve_device_quaternion_packet_threaded() {//这个函数用来接收四元数
 	ServerDriver::Log("Opened thread 1 successful!\n");
-
-	//ohmd
-	int device_idx = 0;
-
-	int major, minor, patch;
-	ohmd_get_version(&major, &minor, &patch);
-
-
-	ohmd_context* ctx = ohmd_ctx_create();
-
-	// Probe for devices
-	int num_devices = ohmd_ctx_probe(ctx);
-
-	// Open specified device idx or 0 (default) if nothing specified
-	ohmd_device* hmd = ohmd_list_open_device(ctx, device_idx);
+	
 	float qres[4];
-	NOLOData nolo_HMD_data;
-
-	bool ifUseNoloTrack = false;
-
-	ServerDriver::Log("Load OpenHMD Successful!!\n");
-
 	while (this->retrieve_quaternion_isOn) {
-				if (!ifUseNoloTrack){
-					ohmd_ctx_update(ctx);
-					ohmd_device_getf(hmd, OHMD_ROTATION_QUAT, qres);
-					this->quat[0] = -1 * qres[0];
-					this->quat[1] = qres[3];
-					this->quat[2] = -1 * qres[2];
-					this->quat[3] = qres[1];
-				}
-				else {
-
-				}
-
+				ohmd_ctx_update(ctx);
+				ohmd_device_getf(HMDRot, OHMD_ROTATION_QUAT, qres);
+				this->quat.w = -1 * qres[0];
+				this->quat.x = qres[3];
+				this->quat.y = -1 * qres[2];
+				this->quat.z = qres[1];
 
 				//this->calibrate_quaternion();//计算四元数,与预设值叠加
+				
+				qres[0] = qconj.w * quat.w - qconj.x * quat.x - qconj.y * quat.y - qconj.z * quat.z;
+				qres[1] = qconj.w * quat.x + qconj.x * quat.w + qconj.y * quat.z - qconj.z * quat.y;
+				qres[2] = qconj.w * quat.y - qconj.x * quat.z + qconj.y * quat.w + qconj.z * quat.x;
+				qres[3] = qconj.w * quat.z + qconj.x * quat.y - qconj.y * quat.x + qconj.z * quat.w;
+				
 
-				qres[0] = qconj[0] * quat[0] - qconj[1] * quat[1] - qconj[2] * quat[2] - qconj[3] * quat[3];
-				qres[1] = qconj[0] * quat[1] + qconj[1] * quat[0] + qconj[2] * quat[3] - qconj[3] * quat[2];
-				qres[2] = qconj[0] * quat[2] - qconj[1] * quat[3] + qconj[2] * quat[0] + qconj[3] * quat[1];
-				qres[3] = qconj[0] * quat[3] + qconj[1] * quat[2] - qconj[2] * quat[1] + qconj[3] * quat[0];
-
-				this->quat[0] = qres[0];
-				this->quat[1] = qres[1];
-				this->quat[2] = qres[2];
-				this->quat[3] = qres[3];
-
-
+				m_Pose.qRotation.w = qres[0];
+				m_Pose.qRotation.x = qres[1];
+				m_Pose.qRotation.y = qres[2];
+				m_Pose.qRotation.z = qres[3];
+				/*
+				m_Pose.qRotation.w = this->quat.w;
+				m_Pose.qRotation.x = this->quat.x;
+				m_Pose.qRotation.y = this->quat.y;
+				m_Pose.qRotation.z = this->quat.z;
+				*/
 				nolo_HMD_data = GetNoloData();
-				this->vector_xyz[0] = -1 * nolo_HMD_data.hmdData.HMDPosition.x;
-				this->vector_xyz[1] = nolo_HMD_data.hmdData.HMDPosition.y;
-				this->vector_xyz[2] = nolo_HMD_data.hmdData.HMDPosition.z;
-				this->new_vector_avaiable = true;
-				this->new_quaternion_avaiable = true;//位置信息可更新
+				this->vector_xyz.x = -1 * nolo_HMD_data.hmdData.HMDPosition.x;
+				this->vector_xyz.y = nolo_HMD_data.hmdData.HMDPosition.y;
+				this->vector_xyz.z = nolo_HMD_data.hmdData.HMDPosition.z;
+
+				if (m_IsTurnAround) {
+					vector_xyz.x = 2 * m_hmdTurnBackPos.x - vector_xyz.x;
+					vector_xyz.z = 2 * m_hmdTurnBackPos.z - vector_xyz.z;
+				}
+
+				m_Pose.vecPosition[0] = this->vector_xyz.x;
+				m_Pose.vecPosition[1] = this->vector_xyz.y;
+				m_Pose.vecPosition[2] = this->vector_xyz.z;
+				vr::VRServerDriverHost()->TrackedDevicePoseUpdated(m_unObjectId, m_Pose, sizeof(vr::DriverPose_t));
+				Sleep(3);
+
 	}
 	ServerDriver::Log("Thread1: successfully stopped\n");
 }
@@ -215,7 +166,28 @@ void Relativty::HMDDriver::SetNoloConnected(bool bcnnected)
 	m_BNoloConnected = bcnnected;
 }
 
+void Relativty::HMDDriver::TurnAround()
+{
+	if (m_IsTurnAround == false)
+	{
+		HMD tempHmd;
+		tempHmd=NOLOVR::GetHMDData();
+		m_hmdTurnBackPos = tempHmd.HMDPosition;
+
+		DriverLog("==SetNoloHmdData==%f,%f,%f=\n", tempHmd.HMDPosition.x, tempHmd.HMDPosition.y, tempHmd.HMDPosition.z);
+	}
+	m_IsTurnAround = !m_IsTurnAround;
+	ServerDriver::Log("Turned Around!\n");
+	qconj = qconj * NOLOVR::NQuaternion(0, 1, 0, 0);
+}
+
+void Relativty::HMDDriver::RecenterHMD(const HMD& HmdData, const Controller& CtrData)
+{
+
+}
+
 Relativty::HMDDriver::HMDDriver(std::string myserial):RelativtyDevice(myserial, "akira_") {
+
 	// keys for use with the settings API
 	static const char* const Relativty_hmd_section = "Relativty_hmd";
 
