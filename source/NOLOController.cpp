@@ -1,6 +1,8 @@
 #include "NOLOController.h"
 #include <driverlog.h>
 
+#define PI 3.1415926535897932384626433832
+
 using namespace vr;
 
 NOLOController::NOLOController(std::string std, ETrackedControllerRole type)
@@ -8,7 +10,7 @@ NOLOController::NOLOController(std::string std, ETrackedControllerRole type)
 	IsTurnAround = false;
 	m_ulPropertyContainer = vr::k_ulInvalidPropertyContainer;
 	m_sSerialNumber = std;
-	m_sModelNumber = "{Relativty}/rendermodels/nolo_controller";
+	m_sModelNumber = "nolo_controller";
 	m_Type = type;
 }
 
@@ -251,9 +253,9 @@ void NOLOController::UpdatePose(Controller ctrData,bool leftOrRight)
 
 
 
-void NOLOController::SetTurnAround(bool bTurn)
+void NOLOController::SetTurnAround()
 {
-	IsTurnAround = bTurn;
+	IsTurnAround = !IsTurnAround;
 }
 
 

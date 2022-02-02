@@ -47,7 +47,7 @@ public:
 
 	std::string GetSerialNumber();
 	void UpdatePose(Controller ctrData,bool leftOrRight);
-	void SetTurnAround(bool bTurn);
+	void SetTurnAround();
 
 private:
 	void initPos();

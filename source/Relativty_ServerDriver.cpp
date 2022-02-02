@@ -158,6 +158,8 @@ void ServerDriver::UpdateNoloKey(ENoloDeviceType device, EControlerButtonType ty
 void ServerDriver::TurnAroundHMD()
 {
 	HMDDriver->TurnAround();
+	noloLeftController->SetTurnAround();
+	noloRightController->SetTurnAround();
 }
 
 void ServerDriver::RecenterHMD(const HMD& HmdData, const Controller& CtrData)
