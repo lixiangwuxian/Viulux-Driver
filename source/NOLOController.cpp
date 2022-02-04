@@ -10,7 +10,7 @@ NOLOController::NOLOController(std::string std, ETrackedControllerRole type)
 	IsTurnAround = false;
 	m_ulPropertyContainer = vr::k_ulInvalidPropertyContainer;
 	m_sSerialNumber = std;
-	m_sModelNumber = "nolo_controller";
+	m_sModelNumber = "{relativty}/rendermodels/nolo_controller";
 	m_Type = type;
 }
 
@@ -54,7 +54,7 @@ EVRInitError NOLOController::Activate(uint32_t unObjectId)
 void NOLOController::InitEventHandler()
 {
 	//in
-	vr::VRDriverInput()->CreateBooleanComponent(m_ulPropertyContainer,"/input/system/click",&m_system);
+	vr::VRDriverInput()->CreateBooleanComponent(m_ulPropertyContainer, "/input/system/click", &m_system);
 	vr::VRDriverInput()->CreateBooleanComponent(m_ulPropertyContainer, "/input/grip/click", &m_grip);
 	vr::VRDriverInput()->CreateBooleanComponent(m_ulPropertyContainer, "/input/application_menu/click", &m_application_menu);
 	vr::VRDriverInput()->CreateBooleanComponent(m_ulPropertyContainer, "/input/trigger/click", &m_trigger);
@@ -199,34 +199,38 @@ DriverPose_t NOLOController::GetPose(Controller ctrData,bool LeftOrRight)
 	m_Pose.qRotation.x = -ctrData.Rotation.x;
 	m_Pose.qRotation.y = ctrData.Rotation.y;
 	m_Pose.qRotation.z = ctrData.Rotation.z;
-	/*
+	NOLOData tmpNolo = GetNoloData();
 	if (LeftOrRight == true) {//left
-		m_Pose.vecVelocity[0] = ctrData.TrackPos.Velocity.x;
-		m_Pose.vecVelocity[1] = ctrData.TrackPos.Velocity.y;
-		m_Pose.vecVelocity[2] = ctrData.TrackPos.Velocity.z;
-		m_Pose.vecAngularVelocity[0] = ctrData.TrackPos.AngularVelocity.x;
-		m_Pose.vecAngularVelocity[1] = ctrData.TrackPos.AngularVelocity.y;
-		m_Pose.vecAngularVelocity[2] = ctrData.TrackPos.AngularVelocity.z;
-
+		m_Pose.vecVelocity[0] = -tmpNolo.NoloSensorData.vecLVelocity.x; //ctrData.TrackPos.Velocity.x;
+		m_Pose.vecVelocity[1] = tmpNolo.NoloSensorData.vecLVelocity.y; //ctrData.TrackPos.Velocity.y;
+		m_Pose.vecVelocity[2] = -tmpNolo.NoloSensorData.vecLVelocity.z; //ctrData.Trackos.Velocity.z;
+		m_Pose.vecAngularVelocity[0] = tmpNolo.NoloSensorData.vecLAngularVelocity.x;//ctrData.TrackPos.AngularVelocity.x;
+		m_Pose.vecAngularVelocity[1] = -tmpNolo.NoloSensorData.vecLAngularVelocity.y;//ctrData.TrackPos.AngularVelocity.y;
+		m_Pose.vecAngularVelocity[2] = -tmpNolo.NoloSensorData.vecLAngularVelocity.z;//ctrData.TrackPos.AngularVelocity.z;
 	}
-	else{
-		m_Pose.vecVelocity[0] = ctrData.TrackPos.Velocity.x;
-		m_Pose.vecVelocity[1] = ctrData.TrackPos.Velocity.y;
-		m_Pose.vecVelocity[2] = ctrData.TrackPos.Velocity.z;
-		m_Pose.vecAngularVelocity[0] = ctrData.TrackPos.AngularVelocity.x;
-		m_Pose.vecAngularVelocity[1] = ctrData.TrackPos.AngularVelocity.y;
-		m_Pose.vecAngularVelocity[2] = ctrData.TrackPos.AngularVelocity.z;
-	}*/
+	else {
+		m_Pose.vecVelocity[0] = -tmpNolo.NoloSensorData.vecRVelocity.x;//ctrData.TrackPos.Velocity.x;
+		m_Pose.vecVelocity[1] = tmpNolo.NoloSensorData.vecRVelocity.y;//ctrData.TrackPos.Velocity.y;
+		m_Pose.vecVelocity[2] = -tmpNolo.NoloSensorData.vecRVelocity.z;
+		m_Pose.vecAngularVelocity[0] = tmpNolo.NoloSensorData.vecLAngularVelocity.x;//ctrData.TrackPos.AngularVelocity.x;
+		m_Pose.vecAngularVelocity[1] = -tmpNolo.NoloSensorData.vecLAngularVelocity.y;//ctrData.TrackPos.AngularVelocity.y;
+		m_Pose.vecAngularVelocity[2] = -tmpNolo.NoloSensorData.vecLAngularVelocity.z;//ctrData.TrackPos.AngularVelocity.z;
+	}
 	if (IsTurnAround)
 	{
 		NQuaternion rot(ctrData.Rotation);
 		NQuaternion rotBackQ(0, 1, 0, 0);
-		rot = rot * rotBackQ;
-
+		rot = rot * rotBackQ* NQuaternion(0,0,0,1);
+		m_Pose.vecPosition[0] = 2 * m_controllerTurnBackPos.x - m_Pose.vecPosition[0];
+		m_Pose.vecPosition[2] = 2 * m_controllerTurnBackPos.z - m_Pose.vecPosition[2];
+		m_Pose.vecVelocity[0] = -m_Pose.vecVelocity[0];
+		m_Pose.vecVelocity[2] = -m_Pose.vecVelocity[2];
+		m_Pose.vecAngularVelocity[0] = -m_Pose.vecAngularVelocity[0];
+		m_Pose.vecAngularVelocity[2] = -m_Pose.vecAngularVelocity[2];
 		m_Pose.qRotation.w = -rot.w;
-		m_Pose.qRotation.x = rot.x;
+		m_Pose.qRotation.x = -rot.x;
 		m_Pose.qRotation.y = rot.y;
-		m_Pose.qRotation.z = -rot.z;
+		m_Pose.qRotation.z = rot.z;
 	}
 	return m_Pose;
 }
@@ -253,8 +257,13 @@ void NOLOController::UpdatePose(Controller ctrData,bool leftOrRight)
 
 
 
-void NOLOController::SetTurnAround()
+void NOLOController::SetTurnAround(Controller ctrData,HMD hmdData)
 {
+	if (IsTurnAround == false)
+	{
+		m_controllerTurnBackPos = hmdData.HMDPosition;
+		m_controllerTurnBackPos.y = ctrData.Position.y;
+	}
 	IsTurnAround = !IsTurnAround;
 }
 
