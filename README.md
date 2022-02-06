@@ -1,5 +1,5 @@
-# *the driver*
+写的差不多了，可以开源了。虽然代码还是很烂，不过该有的功能应该都有。
 
-to compile thy code one mustn't use `Debug`, thou shall use `Release` to compile thy scriptures
+GPL3.0开源
 
-thou will summon the compiler god's wrath, shall thou one use `Debug`
+奇怪的问题：系统键呼不出steam菜单，截图可以，不知道咋修先不管了。拿nolo home连手机就正常。见鬼
