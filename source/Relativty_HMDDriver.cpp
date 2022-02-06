@@ -69,8 +69,6 @@ vr::EVRInitError Relativty::HMDDriver::Activate(uint32_t unObjectId) {
 	HMDRot= ohmd_list_open_device(ctx, 0);
 	float qres[4];
 	ServerDriver::Log("Load OpenHMD Successful!!\n");
-
-	qconj =  NOLOVR::NQuaternion(0, 0, 1, 0);
 	
 	this->retrieve_quaternion_isOn = true;
 	this->retrieve_quaternion_thread_worker = std::thread(&Relativty::HMDDriver::retrieve_device_quaternion_packet_threaded, this);
@@ -85,27 +83,6 @@ void Relativty::HMDDriver::Deactivate() {
 	RelativtyDevice::Deactivate();
 
 	ServerDriver::Log("Thread0: all threads exit correctly \n");
-}
-
-
-void Relativty::HMDDriver::calibrate_quaternion() {
-	/*if ((0x01 & GetAsyncKeyState(0x52)) != 0) {
-		qconj.w.store(quat.w);
-		qconj.x.store(-1 * quat.x);
-		qconj.y.store(-1 * quat.y);
-		qconj.z.store(-1 * quat.z);
-	}*/
-	float qres[4];
-	/*
-	qres[0] = qconj.w * quat.w - qconj.x * quat.x - qconj.y * quat.y - qconj.z * quat.z;
-	qres[1] = qconj.w * quat.x + qconj.x * quat.w + qconj.y * quat.z - qconj.z * quat.y;
-	qres[2] = qconj.w * quat.y - qconj.x * quat.z + qconj.y * quat.w + qconj.z * quat.x;
-	qres[3] = qconj.w * quat.z + qconj.x * quat.y - qconj.y * quat.x + qconj.z * quat.w;
-	*/
-	this->quat.w = qres[0];
-	this->quat.x = qres[1];
-	this->quat.y = qres[2];
-	this->quat.z = qres[3];
 }
 
 void Relativty::HMDDriver::retrieve_device_quaternion_packet_threaded() {//这个函数用来接收四元数
