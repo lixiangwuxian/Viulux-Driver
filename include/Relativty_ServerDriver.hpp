@@ -42,6 +42,7 @@ public:
 	void UpdateHaptic(VREvent_t& eventHandle);
 	void UpdateNoloKey(ENoloDeviceType device, EControlerButtonType type,bool ifPress);
 	void TurnAroundHMD();
+	void TurnAroundNolo(Controller leftData,Controller rightData,HMD hmdData);
 	void RecenterHMD(const HMD& HmdData, const Controller& CtrData);
 private:
 	Relativty::HMDDriver* HMDDriver = nullptr;

@@ -41,6 +41,7 @@ namespace Relativty {
 		void SetNoloConnected(bool bcnnected);
 		void TurnAround();
 		void RecenterHMD(const NOLOVR::HMD& HmdData, const NOLOVR::Controller& CtrData);
+		void retrieve_device_quaternion_packet_threaded();
 
 	private:
 
@@ -66,14 +67,13 @@ namespace Relativty {
 
 		//std::atomic<float> quat[4];
 		NOLOVR::NQuaternion quat;
-
+		NOLOVR::NQuaternion qOffset={0,0,0,1};
 
 		std::atomic<bool> retrieve_quaternion_isOn = false;
 
-		NOLOVR::NQuaternion qconj;
-		void calibrate_quaternion();
+		NOLOVR::NQuaternion qconj={0,0,0,1};
 
-		void retrieve_device_quaternion_packet_threaded();
+		
 
 		//void retrieve_device_quaternion_packet_threaded();
 

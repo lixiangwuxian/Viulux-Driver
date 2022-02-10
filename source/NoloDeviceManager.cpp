@@ -54,6 +54,7 @@ void NoloDeviceManager::OnKeyDoubleClicked(ENoloDeviceType DevType, UCHAR Keys)
 	if (Keys & EControlerButtonType::eMenuBtn)
 	{
 		m_Server->TurnAroundHMD();
+		m_Server->TurnAroundNolo(TempData.leftData, TempData.rightData, TempData.hmdData);
 	}
 
 }

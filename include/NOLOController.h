@@ -47,7 +47,7 @@ public:
 
 	std::string GetSerialNumber();
 	void UpdatePose(Controller ctrData,bool leftOrRight);
-	void SetTurnAround();
+	void SetTurnAround(Controller ctrData,HMD hmdData);
 
 private:
 	void initPos();
@@ -74,6 +74,7 @@ private:
 	std::string m_sSerialNumber;
 	std::string m_sModelNumber;
 	ETrackedControllerRole  m_Type;
+	NVector3 m_controllerTurnBackPos;
 	bool IsTurnAround;
 };
 

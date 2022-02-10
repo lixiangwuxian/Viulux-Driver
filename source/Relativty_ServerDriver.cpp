@@ -38,12 +38,14 @@ vr::EVRInitError ServerDriver::Init(vr::IVRDriverContext* DriverContext) {
 
 	this->HMDDriver = new Relativty::HMDDriver("zero");
 	this->m_NoloManager = new NoloDeviceManager(this);
-	this->noloLeftController = new NOLOController("1314", TrackedControllerRole_LeftHand);
-	this->noloRightController = new NOLOController("1315", TrackedControllerRole_RightHand);
+	this->noloLeftController = new NOLOController("1366", TrackedControllerRole_LeftHand);
+	this->noloRightController = new NOLOController("1388", TrackedControllerRole_RightHand);
 	
 	if (m_NoloManager->InitNoloDevice()) {
 		this->Log("ZMQ Init successful.\n");
 	}
+
+	SetBCellingMode(true);
 
 	vr::VRServerDriverHost()->TrackedDeviceAdded(HMDDriver->GetSerialNumber().c_str(), vr::ETrackedDeviceClass::TrackedDeviceClass_HMD, this->HMDDriver);
 	vr::VRServerDriverHost()->TrackedDeviceAdded(noloLeftController->GetSerialNumber().c_str(), vr::TrackedDeviceClass_Controller, this->noloLeftController);
@@ -81,7 +83,9 @@ const char* const* ServerDriver::GetInterfaceVersions() {
 	return vr::k_InterfaceVersions;
 }
 
-void ServerDriver::RunFrame() {} // if ur not using it don't populate it with garbage!
+void ServerDriver::RunFrame() {
+	//this->HMDDriver->retrieve_device_quaternion_packet_threaded();
+} // if ur not using it don't populate it with garbage!
 
 bool ServerDriver::ShouldBlockStandbyMode() {
 	return false;
@@ -158,8 +162,12 @@ void ServerDriver::UpdateNoloKey(ENoloDeviceType device, EControlerButtonType ty
 void ServerDriver::TurnAroundHMD()
 {
 	HMDDriver->TurnAround();
-	noloLeftController->SetTurnAround();
-	noloRightController->SetTurnAround();
+}
+
+void ServerDriver::TurnAroundNolo(Controller leftData, Controller rightData,HMD hmdData)
+{
+	this->noloLeftController->SetTurnAround(leftData,hmdData);
+	this->noloRightController->SetTurnAround(rightData,hmdData);
 }
 
 void ServerDriver::RecenterHMD(const HMD& HmdData, const Controller& CtrData)

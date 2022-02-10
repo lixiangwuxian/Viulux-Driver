@@ -30,8 +30,7 @@ EVRInitError NOLOController::Activate(uint32_t unObjectId)
 	vr::VRProperties()->SetStringProperty(m_ulPropertyContainer, Prop_ManufacturerName_String, "HTC");
 	vr::VRProperties()->SetInt32Property(m_ulPropertyContainer, Prop_Axis0Type_Int32, k_eControllerAxis_TrackPad);
 	vr::VRProperties()->SetInt32Property(m_ulPropertyContainer, Prop_Axis1Type_Int32, k_eControllerAxis_Trigger);
-	vr::VRProperties()->SetStringProperty(m_ulPropertyContainer,
-		Prop_InputProfilePath_String, "{relativty}/input/vive_controller_profile.json");
+	vr::VRProperties()->SetStringProperty(m_ulPropertyContainer,Prop_InputProfilePath_String, "{relativty}/input/vive_controller_profile.json");
 	
 	//ÊÖ±úÀàÐÍ
 	vr::VRProperties()->SetInt32Property(m_ulPropertyContainer, Prop_ControllerRoleHint_Int32, m_Type);
@@ -205,16 +204,16 @@ DriverPose_t NOLOController::GetPose(Controller ctrData,bool LeftOrRight)
 		m_Pose.vecVelocity[1] = tmpNolo.NoloSensorData.vecLVelocity.y; //ctrData.TrackPos.Velocity.y;
 		m_Pose.vecVelocity[2] = -tmpNolo.NoloSensorData.vecLVelocity.z; //ctrData.Trackos.Velocity.z;
 		m_Pose.vecAngularVelocity[0] = tmpNolo.NoloSensorData.vecLAngularVelocity.x;//ctrData.TrackPos.AngularVelocity.x;
-		m_Pose.vecAngularVelocity[1] = -tmpNolo.NoloSensorData.vecLAngularVelocity.y;//ctrData.TrackPos.AngularVelocity.y;
+		m_Pose.vecAngularVelocity[1] = tmpNolo.NoloSensorData.vecLAngularVelocity.y;//ctrData.TrackPos.AngularVelocity.y;
 		m_Pose.vecAngularVelocity[2] = -tmpNolo.NoloSensorData.vecLAngularVelocity.z;//ctrData.TrackPos.AngularVelocity.z;
 	}
 	else {
 		m_Pose.vecVelocity[0] = -tmpNolo.NoloSensorData.vecRVelocity.x;//ctrData.TrackPos.Velocity.x;
 		m_Pose.vecVelocity[1] = tmpNolo.NoloSensorData.vecRVelocity.y;//ctrData.TrackPos.Velocity.y;
 		m_Pose.vecVelocity[2] = -tmpNolo.NoloSensorData.vecRVelocity.z;
-		m_Pose.vecAngularVelocity[0] = tmpNolo.NoloSensorData.vecLAngularVelocity.x;//ctrData.TrackPos.AngularVelocity.x;
-		m_Pose.vecAngularVelocity[1] = -tmpNolo.NoloSensorData.vecLAngularVelocity.y;//ctrData.TrackPos.AngularVelocity.y;
-		m_Pose.vecAngularVelocity[2] = -tmpNolo.NoloSensorData.vecLAngularVelocity.z;//ctrData.TrackPos.AngularVelocity.z;
+		m_Pose.vecAngularVelocity[0] = tmpNolo.NoloSensorData.vecRAngularVelocity.x;//ctrData.TrackPos.AngularVelocity.x;
+		m_Pose.vecAngularVelocity[1] = tmpNolo.NoloSensorData.vecRAngularVelocity.y;//ctrData.TrackPos.AngularVelocity.y;
+		m_Pose.vecAngularVelocity[2] = -tmpNolo.NoloSensorData.vecRAngularVelocity.z;//ctrData.TrackPos.AngularVelocity.z;
 	}
 	if (IsTurnAround)
 	{
