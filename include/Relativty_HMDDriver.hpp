@@ -32,7 +32,7 @@ namespace Relativty {
 		HMDDriver(std::string myserial);
 		~HMDDriver() = default;
 
-		void frameUpdate();
+		//void frameUpdate();
 		inline void setProperties();
 
 		// Inherited from RelativtyDevice, to be overridden
@@ -41,7 +41,7 @@ namespace Relativty {
 		void SetNoloConnected(bool bcnnected);
 		void TurnAround();
 		void RecenterHMD(const NOLOVR::HMD& HmdData, const NOLOVR::Controller& CtrData);
-		void retrieve_device_quaternion_packet_threaded();
+		void onNewData();
 
 	private:
 
@@ -49,6 +49,8 @@ namespace Relativty {
 
 		ohmd_device *HMDRot;
 		ohmd_context* ctx;
+
+		bool bUseNoloRot = true;
 
 		NOLOVR::HMD  m_HmdRecenterData;
 		NOLOVR::Controller m_RecenterContoller;
@@ -69,16 +71,16 @@ namespace Relativty {
 		NOLOVR::NQuaternion quat;
 		NOLOVR::NQuaternion qOffset={0,0,0,1};
 
-		std::atomic<bool> retrieve_quaternion_isOn = false;
+		//std::atomic<bool> retrieve_quaternion_isOn = false;
 
 		NOLOVR::NQuaternion qconj={0,0,0,1};
 
 		
 
-		//void retrieve_device_quaternion_packet_threaded();
+		//void onNewData();
 
 		NOLOVR::NVector3 vector_xyz;
-		std::thread retrieve_quaternion_thread_worker;
+		//std::thread retrieve_quaternion_thread_worker;
 		//std::atomic<float> vector_xyz[3];
 	};
 }

@@ -34,7 +34,7 @@ void NoloDeviceManager::OnZMQDisConnected()
 
 void NoloDeviceManager::OnKeyDoubleClicked(ENoloDeviceType DevType, UCHAR Keys)
 {
-	ServerDriver::Log("Key Double Clicked!\n");
+	//ServerDriver::Log("Key Double Clicked!\n");
 	NOLOData TempData = GetNoloData();
 	if(Keys&&EControlerButtonType::eSystemBtn)
 	{

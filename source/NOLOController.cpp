@@ -124,9 +124,12 @@ void NOLOController::initPos()
 	m_Pose.qDriverFromHeadRotation.x = 0.0f;
 	m_Pose.qDriverFromHeadRotation.y = 0.0f;
 	m_Pose.qDriverFromHeadRotation.z = 0.0f;
+
 	m_Pose.vecDriverFromHeadTranslation[0] = 0.000f;
-	m_Pose.vecDriverFromHeadTranslation[1] = 0.007f;
-	m_Pose.vecDriverFromHeadTranslation[2] = -0.073f;
+	m_Pose.vecDriverFromHeadTranslation[1] = 0.000f;
+	m_Pose.vecDriverFromHeadTranslation[2] = 0.000f;
+	//m_Pose.vecDriverFromHeadTranslation[1] = 0.007f;
+	//m_Pose.vecDriverFromHeadTranslation[2] = -0.073f;
 
 	m_Pose.vecAcceleration[0] = 0.0;
 	m_Pose.vecAcceleration[1] = 0.0;
@@ -203,17 +206,17 @@ DriverPose_t NOLOController::GetPose(Controller ctrData,bool LeftOrRight)
 		m_Pose.vecVelocity[0] = -tmpNolo.NoloSensorData.vecLVelocity.x; //ctrData.TrackPos.Velocity.x;
 		m_Pose.vecVelocity[1] = tmpNolo.NoloSensorData.vecLVelocity.y; //ctrData.TrackPos.Velocity.y;
 		m_Pose.vecVelocity[2] = -tmpNolo.NoloSensorData.vecLVelocity.z; //ctrData.Trackos.Velocity.z;
-		m_Pose.vecAngularVelocity[0] = tmpNolo.NoloSensorData.vecLAngularVelocity.x;//ctrData.TrackPos.AngularVelocity.x;
+		m_Pose.vecAngularVelocity[0] = -tmpNolo.NoloSensorData.vecLAngularVelocity.x;//ctrData.TrackPos.AngularVelocity.x;
 		m_Pose.vecAngularVelocity[1] = tmpNolo.NoloSensorData.vecLAngularVelocity.y;//ctrData.TrackPos.AngularVelocity.y;
-		m_Pose.vecAngularVelocity[2] = -tmpNolo.NoloSensorData.vecLAngularVelocity.z;//ctrData.TrackPos.AngularVelocity.z;
+		m_Pose.vecAngularVelocity[2] = tmpNolo.NoloSensorData.vecLAngularVelocity.z;//ctrData.TrackPos.AngularVelocity.z;
 	}
 	else {
 		m_Pose.vecVelocity[0] = -tmpNolo.NoloSensorData.vecRVelocity.x;//ctrData.TrackPos.Velocity.x;
 		m_Pose.vecVelocity[1] = tmpNolo.NoloSensorData.vecRVelocity.y;//ctrData.TrackPos.Velocity.y;
 		m_Pose.vecVelocity[2] = -tmpNolo.NoloSensorData.vecRVelocity.z;
-		m_Pose.vecAngularVelocity[0] = tmpNolo.NoloSensorData.vecRAngularVelocity.x;//ctrData.TrackPos.AngularVelocity.x;
+		m_Pose.vecAngularVelocity[0] = -tmpNolo.NoloSensorData.vecRAngularVelocity.x;//ctrData.TrackPos.AngularVelocity.x;
 		m_Pose.vecAngularVelocity[1] = tmpNolo.NoloSensorData.vecRAngularVelocity.y;//ctrData.TrackPos.AngularVelocity.y;
-		m_Pose.vecAngularVelocity[2] = -tmpNolo.NoloSensorData.vecRAngularVelocity.z;//ctrData.TrackPos.AngularVelocity.z;
+		m_Pose.vecAngularVelocity[2] = tmpNolo.NoloSensorData.vecRAngularVelocity.z;//ctrData.TrackPos.AngularVelocity.z;
 	}
 	if (IsTurnAround)
 	{
@@ -244,13 +247,17 @@ void NOLOController::UpdatePose(Controller ctrData,bool leftOrRight)
 	if (m_unObjectId != vr::k_unTrackedDeviceIndexInvalid)
 	{
 		vr::VRServerDriverHost()->TrackedDevicePoseUpdated(m_unObjectId, GetPose(ctrData,leftOrRight), sizeof(DriverPose_t));
-		if (ctrData.Touched)
-		{
+		//if (ctrData.Touched)
+		//{
 			float x = ctrData.TouchAxis.x;
 			float y = ctrData.TouchAxis.y;
 			vr::VRDriverInput()->UpdateScalarComponent(m_trackpadx, x, -0.005);
 			vr::VRDriverInput()->UpdateScalarComponent(m_trackpady, y, -0.005);
-		}
+		//}
+		/**else {
+			vr::VRDriverInput()->UpdateScalarComponent(m_trackpadx, 0, -0.005);
+			vr::VRDriverInput()->UpdateScalarComponent(m_trackpady, 0, -0.005);
+		}**/
 	}
 }
 

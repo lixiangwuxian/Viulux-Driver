@@ -50,7 +50,9 @@ private:
 	NOLOController* noloLeftController;//◊Û ÷
 	NOLOController* noloRightController;//”“ ÷
 
-	
+	clock_t LsentTime;
+	clock_t RsentTime;
+
 	bool m_bEventThreadRunning;
 	std::thread send_haptic_thread_worker;
 	void Send_haptic_event_thread();

@@ -45,7 +45,7 @@ vr::EVRInitError ServerDriver::Init(vr::IVRDriverContext* DriverContext) {
 		this->Log("ZMQ Init successful.\n");
 	}
 
-	SetBCellingMode(true);
+	//SetBCellingMode(true);
 
 	vr::VRServerDriverHost()->TrackedDeviceAdded(HMDDriver->GetSerialNumber().c_str(), vr::ETrackedDeviceClass::TrackedDeviceClass_HMD, this->HMDDriver);
 	vr::VRServerDriverHost()->TrackedDeviceAdded(noloLeftController->GetSerialNumber().c_str(), vr::TrackedDeviceClass_Controller, this->noloLeftController);
@@ -59,6 +59,8 @@ vr::EVRInitError ServerDriver::Init(vr::IVRDriverContext* DriverContext) {
 		send_haptic_thread_worker = std::thread::thread(&ServerDriver::Send_haptic_event_thread, this);//震动线程
 		send_haptic_thread_worker.detach();
 	}
+	LsentTime = clock();
+	RsentTime = clock();
 	return vr::VRInitError_None;
 }
 
@@ -113,7 +115,9 @@ void ServerDriver::SetNoloConnected(bool bcnnected)
 int ConvertAmplitude(float fAmplitude)
 {
 	//NOLO Controler Valid Amplitude: 52 - 100
-	float newAmplitude = (fAmplitude * 100.0f) + 52.0f;
+	float newAmplitude = (fAmplitude * 48.0f) + 52.0f;
+
+	// newAmplitude = fAmplitude<0.2?(fAmplitude * 100.0f) + 52.0f:(fAmplitude * 12.5f) + 67.5f;
 	int iAmp = newAmplitude;
 	if (iAmp > 100)
 	{
@@ -124,23 +128,28 @@ int ConvertAmplitude(float fAmplitude)
 
 void ServerDriver::UpdateHaptic(VREvent_t& eventHandle)
 {
-	DriverLog("#=========Type=%d== InDex=%d=========\n", eventHandle.eventType, eventHandle.trackedDeviceIndex);
+
+	DriverLog("#=========Type=%d== InDex=%d Strength=%.2f=========\n", eventHandle.eventType, eventHandle.trackedDeviceIndex, eventHandle.data.hapticVibration.fAmplitude);
+	clock_t nowTime=clock();
 	if (eventHandle.eventType == VREvent_Input_HapticVibration)
 	{
 		VREvent_HapticVibration_t data = eventHandle.data.hapticVibration;
 		int iAmplitude = ConvertAmplitude(data.fAmplitude);
-		if (noloLeftController->GetPropertyContainer() == data.containerHandle)
+		if (noloLeftController->GetPropertyContainer() == data.containerHandle && (nowTime - LsentTime) > 56)//沙口sdk的注释是16ms..实际56ms以内会堵塞。
 		{
 			NOLOVR::TriggerHapticPulse(NOLOVR::eLeftController, iAmplitude);
+			LsentTime = clock();
 		}
-		else if (noloRightController->GetPropertyContainer() == data.containerHandle)
+		else if (noloRightController->GetPropertyContainer() == data.containerHandle && (nowTime - RsentTime) > 56)
 		{
 			NOLOVR::TriggerHapticPulse(NOLOVR::eRightController, iAmplitude);
+			RsentTime = clock();
 		}
 	}
 }
 
 void ServerDriver::UpdateNoloPose(const NOLOData& newData) {
+	HMDDriver->onNewData();
 	if (noloLeftController){
 		noloLeftController->UpdatePose(newData.leftData,true);
 	}
